@@ -1,10 +1,32 @@
 <ion-content [fullscreen]="true">
+  <ion-refresher slot="fixed" (ionRefresh)="handleRefresh($event)"><ion-refresher-content></ion-refresher-content></ion-refresher>
+
   <h1 class="headline" style="padding-left: 20px; padding-top: 10px">MedBox</h1>
 
-  <div class="container">
-    <strong>Nothing to show here</strong>
-    <p>Start by connecting your first MedBox</p>
-  </div>
+  @if (backendService.stacks === undefined) {
+    <div class="container">
+      <ion-spinner name="crescent"></ion-spinner>
+    </div>
+  } @else if (backendService.stacks.length === 0) {
+    <div class="container">
+      <strong>Nothing to show here</strong>
+      <p>Start by connecting your first MedBox</p>
+    </div>
+  } @else {
+    <ion-list>
+      @for (stack of backendService.stacks; track stack.id) {
+        <ion-card>
+          <ion-card-header>
+            <ion-card-title>{{stack.name}}</ion-card-title>
+            <ion-card-subtitle>{{stackStatusString(stack)}}</ion-card-subtitle>
+          </ion-card-header>
+          <ion-card-content>
+            <p>Next dispense: {{nextDispenseOfStack(stack)}}</p>
+          </ion-card-content>
+        </ion-card>
+      }
+    </ion-list>
+  }
 
   <ion-fab style="position: absolute; bottom: 20px; right: 20px" routerLink="/connect-new-stack">
     <ion-fab-button>
