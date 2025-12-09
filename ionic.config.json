@@ -1,0 +1,7 @@
+{
+  "name": "MedBoxApp",
+  "integrations": {
+    "capacitor": {}
+  },
+  "type": "angular-standalone"
+}

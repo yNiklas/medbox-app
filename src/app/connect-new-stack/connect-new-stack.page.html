@@ -1,0 +1,34 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-title size="large">Connect new Stack</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content>
+  @switch (step) {
+    @case("connect") {
+      <div class="container">
+        RR
+        <ion-button (click)="connect()">Connect</ion-button>
+      </div>
+    }
+    @case("configure") {
+      <div class="container">
+        <ion-list>
+          <ion-item>
+            <ion-select label="SSIOD" [(ngModel)]="ssid">
+              @for (ssid of foundSSIDs; track $index) {
+                <ion-select-option [value]="ssid">{{ssid}}</ion-select-option>
+              }
+            </ion-select>
+          </ion-item>
+          <ion-item>
+            <ion-input label="Password" [(ngModel)]="password"></ion-input>
+          </ion-item>
+        </ion-list>
+
+        <ion-button (click)="configure()">Connect</ion-button>
+      </div>
+    }
+  }
+</ion-content>
