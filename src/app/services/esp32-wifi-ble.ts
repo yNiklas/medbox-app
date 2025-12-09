@@ -1,3 +1,4 @@
+// typescript
 import { Injectable } from '@angular/core';
 import { BleClient } from '@capacitor-community/bluetooth-le';
 
@@ -19,6 +20,7 @@ export interface WifiNetwork {
 export class Esp32WifiBle {
   private deviceId: string | null = null;
   private notificationsStarted = false;
+  private notificationHandlers = new Set<(text: string) => void>();
 
   /**
    * Muss einmal zu Beginn aufgerufen werden (z.B. in app.component)
@@ -32,7 +34,6 @@ export class Esp32WifiBle {
    * Öffnet den Device-Dialog und verbindet mit deinem ESP32 ("MedBox Controller")
    */
   async connect(): Promise<boolean> {
-    // Falls schon connected, einfach raus
     if (this.deviceId) {
       try {
         const devices = await BleClient.getConnectedDevices([SERVICE_UUID]);
@@ -47,8 +48,6 @@ export class Esp32WifiBle {
     try {
       const device = await BleClient.requestDevice({
         services: [SERVICE_UUID],
-        // optional nameFilter, wenn du willst:
-        // name: 'MedBox Controller',
       });
 
       this.deviceId = device.deviceId;
@@ -58,6 +57,7 @@ export class Esp32WifiBle {
         if (this.deviceId === id) {
           this.deviceId = null;
           this.notificationsStarted = false;
+          this.notificationHandlers.clear();
         }
       });
     } catch (e) {
@@ -75,17 +75,11 @@ export class Esp32WifiBle {
     }
   }
 
-  /**
-   * Text -> DataView für das Write
-   */
   private stringToDataView(text: string): DataView {
     const bytes = textEncoder.encode(text);
     return new DataView(bytes.buffer);
   }
 
-  /**
-   * DataView -> string für Notifications
-   */
   private dataViewToString(value: DataView): string {
     const bytes = new Uint8Array(
       value.buffer,
@@ -96,17 +90,23 @@ export class Esp32WifiBle {
   }
 
   /**
-   * Startet Notifications einmal und übergibt die Raws an den Callback
+   * Registriert einen Notification\-Handler und liefert eine Unsubscribe\-Funktion zurück.
+   * Intern wird nur einmal startNotifications aufgerufen; eingehende Notifications
+   * werden an alle registrierten Handler weitergereicht.
    */
   private async ensureNotifications(
     handler: (text: string) => void,
-  ): Promise<void> {
+  ): Promise<() => void> {
     await this.ensureConnected();
     if (!this.deviceId) throw new Error('Device not connected');
 
+    this.notificationHandlers.add(handler);
+    const unsubscribe = () => {
+      this.notificationHandlers.delete(handler);
+    };
+
     if (this.notificationsStarted) {
-      // Hier bewusst NICHT stop/start, damit wir einmal global Notifications haben.
-      return;
+      return unsubscribe;
     }
 
     await BleClient.startNotifications(
@@ -116,13 +116,20 @@ export class Esp32WifiBle {
       (value) => {
         const text = this.dataViewToString(value);
         if (!text) return;
-        console.log('[BLE] Notify:', text);
-        handler(text);
+        // Router: sende an alle registrierten Handler
+        this.notificationHandlers.forEach((h) => {
+          try {
+            h(text);
+          } catch (e) {
+            console.error('[BLE] Notification handler error', e);
+          }
+        });
       },
     );
 
     this.notificationsStarted = true;
     console.log('[BLE] Notifications started');
+    return unsubscribe;
   }
 
   /**
@@ -136,13 +143,9 @@ export class Esp32WifiBle {
     return new Promise<WifiNetwork[]>(async (resolve) => {
       const networks: WifiNetwork[] = [];
       let collecting = false;
+      let timer: any;
 
-      const timer = setTimeout(() => {
-        console.warn('[BLE] scanWifiNetworks timeout');
-        resolve(networks); // ggf. Teilmenge zurückgeben
-      }, timeoutMs);
-
-      await this.ensureNotifications((text) => {
+      const unsubscribe = await this.ensureNotifications((text) => {
         if (text === 'Begin Wifi') {
           collecting = true;
           networks.length = 0;
@@ -151,19 +154,18 @@ export class Esp32WifiBle {
 
         if (text === 'End Wifi') {
           collecting = false;
-          clearTimeout(timer);
+          if (timer) clearTimeout(timer);
+          unsubscribe();
           resolve(networks);
           return;
         }
 
         if (!collecting) {
-          // z.B. deine MAC-Adress-Notifications aus loop()
           return;
         }
 
         if (text.startsWith('SSID:')) {
           try {
-            // Format: "SSID:Name,RSSI:-60"
             const parts = text.split(',');
             const ssidPart = parts[0].slice('SSID:'.length);
             const rssiPart = parts[1].slice('RSSI:'.length);
@@ -176,6 +178,12 @@ export class Esp32WifiBle {
           }
         }
       });
+
+      timer = setTimeout(() => {
+        console.warn('[BLE] scanWifiNetworks timeout');
+        unsubscribe();
+        resolve(networks);
+      }, timeoutMs);
 
       // ESP32 anstoßen
       await BleClient.write(
@@ -192,18 +200,22 @@ export class Esp32WifiBle {
     if (!this.deviceId) throw new Error('Device not connected');
 
     return new Promise<string>(async (resolve) => {
-      const timer = setTimeout(() => {
-        console.warn("[BLE] retrieveMACAddress timeout");
-        resolve('');
-      }, timeout);
+      let timer: any;
 
-      await this.ensureNotifications((text) => {
-        if (text.startsWith("MAC:")) {
-          clearTimeout(timer);
-          const macAddress = text.slice("MAC:".length).trim();
+      const unsubscribe = await this.ensureNotifications((text) => {
+        if (text.startsWith('MAC:')) {
+          if (timer) clearTimeout(timer);
+          unsubscribe();
+          const macAddress = text.slice('MAC:'.length).trim();
           resolve(macAddress);
         }
       });
+
+      timer = setTimeout(() => {
+        console.warn('[BLE] retrieveMACAddress timeout');
+        unsubscribe();
+        resolve('');
+      }, timeout);
 
       await BleClient.write(
         this.deviceId!,
@@ -215,55 +227,79 @@ export class Esp32WifiBle {
   }
 
   /**
-   * Schickt WLAN-Konfiguration:
+   * Schickt WLAN\-Konfiguration:
    * 1) "CON_WIFI"
    * 2) "S" + SSID
    * 3) "P" + Passwort
    *
    * Der ESP32 speichert das und macht ESP.restart().
    */
-  async configureWifi(ssid: string, password: string): Promise<void> {
+  async configureWifi(ssid: string, password: string, timeoutMs = 10000): Promise<boolean> {
     if (!ssid || !password) {
-      throw new Error('SSID und Passwort dürfen nicht leer sein.');
+      throw new Error('Missing SSID or password');
     }
 
     await this.ensureConnected();
     if (!this.deviceId) throw new Error('Device not connected');
 
-    // 1) CON_WIFI
-    console.log('[BLE] Sending CON_WIFI');
-    await BleClient.write(
-      this.deviceId,
-      SERVICE_UUID,
-      CHARACTERISTIC_UUID,
-      this.stringToDataView('CON_WIFI'),
-    );
+    return new Promise<boolean>(async (resolve) => {
+      let finished = false;
+      let timer: any;
 
-    // kleine Pause, damit dein state = 1 greifen kann
-    await new Promise((res) => setTimeout(res, 200));
+      const finish = (value: boolean) => {
+        if (finished) return;
+        finished = true;
+        if (timer) clearTimeout(timer);
+        if (unsubscribe) unsubscribe();
+        resolve(value);
+      };
 
-    // 2) SSID
-    console.log('[BLE] Sending SSID');
-    await BleClient.write(
-      this.deviceId,
-      SERVICE_UUID,
-      CHARACTERISTIC_UUID,
-      this.stringToDataView('S' + ssid),
-    );
+      const unsubscribe = await this.ensureNotifications((text) => {
+        console.log('[BLE] Notify in configureWifi:', text);
 
-    await new Promise((res) => setTimeout(res, 200));
+        if (text === 'SUCCESS') {
+          finish(true);
+        } else if (text === 'FAILED') {
+          finish(false);
+        }
+      });
 
-    // 3) Passwort
-    console.log('[BLE] Sending password');
-    await BleClient.write(
-      this.deviceId,
-      SERVICE_UUID,
-      CHARACTERISTIC_UUID,
-      this.stringToDataView('P' + password),
-    );
+      // timeout → FAIL
+      timer = setTimeout(() => {
+        console.warn('[BLE] configureWifi timeout');
+        finish(false);
+      }, timeoutMs);
 
-    console.log(
-      '[BLE] WiFi config sent, ESP32 sollte jetzt gleich neu starten.',
-    );
+      // 1) Send CON_WIFI
+      console.log('[BLE] Sending CON_WIFI');
+      await BleClient.write(
+        this.deviceId!,
+        SERVICE_UUID,
+        CHARACTERISTIC_UUID,
+        this.stringToDataView('CON_WIFI'),
+      );
+
+      await new Promise((res) => setTimeout(res, 200));
+
+      // 2) SSID
+      console.log('[BLE] Sending SSID');
+      await BleClient.write(
+        this.deviceId!,
+        SERVICE_UUID,
+        CHARACTERISTIC_UUID,
+        this.stringToDataView('S' + ssid),
+      );
+
+      await new Promise((res) => setTimeout(res, 200));
+
+      // 3) Password
+      console.log('[BLE] Sending password');
+      await BleClient.write(
+        this.deviceId!,
+        SERVICE_UUID,
+        CHARACTERISTIC_UUID,
+        this.stringToDataView('P' + password),
+      );
+    });
   }
 }

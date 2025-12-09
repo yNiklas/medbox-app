@@ -32,9 +32,10 @@ export class ConnectNewStackPage implements OnInit {
   password = "";
 
   step : "connect" | "wait_for_scan" | "configure" | "done" = "connect";
-  connectionSuccessful = false;
+  esp32ConnectionSuccessful: boolean | undefined = undefined;
   foundSSIDs: string[] = [];
   connectedMACAddress: string | undefined = undefined;
+  wiFiConnectionSuccessful: boolean | undefined = undefined;
 
   constructor() { }
 
@@ -43,47 +44,57 @@ export class ConnectNewStackPage implements OnInit {
   }
 
   async connect() {
-    this.connectionSuccessful = await this.esp32WifiBle.connect();
-    if (this.connectionSuccessful) {
-      // Make timeout to give BLE connection establishing some time
-      setTimeout(async () => {
-        this.connectedMACAddress = await this.esp32WifiBle.retrieveMACAddress();
-      }, 500);
+    this.esp32ConnectionSuccessful = await this.esp32WifiBle.connect();
+    if (this.esp32ConnectionSuccessful) {
       let loading = await this.loadingCtrl.create({
         message: "Connecting to device...",
         duration: this.WIFI_MAC_RETRIEVE_TIMEOUT+500,
       });
       await loading.present();
-      if (!this.connectedMACAddress) {
-        this.presentToast("Could not retrieve MAC address!");
-        return;
-      }
-      this.presentToast("Connected successfully!");
 
-      setTimeout(() => {
-        this.scan();
-      }, 100);
-      loading = await this.loadingCtrl.create({
-        message: "Scanning for WiFi networks...",
-        duration: this.WIFI_SCAN_TIMEOUT+100,
-      });
-      await loading.present();
+      // Make timeout to give BLE connection establishing some time
+      setTimeout(async () => {
+        this.connectedMACAddress = await this.esp32WifiBle.retrieveMACAddress(this.WIFI_MAC_RETRIEVE_TIMEOUT);
+        // Wait for the MAC retrieval
+        setTimeout(async () => {
+          if (!this.connectedMACAddress) {
+            this.presentToast("Could not retrieve MAC address!");
+            return;
+          }
+          this.presentToast("Connected successfully to " + this.connectedMACAddress);
 
-      this.step = "configure";
+          setTimeout(() => {
+            this.scan();
+          }, 100);
+          loading = await this.loadingCtrl.create({
+            message: "Scanning for WiFi networks...",
+            duration: this.WIFI_SCAN_TIMEOUT+100,
+          });
+          await loading.present();
+
+          setTimeout(async () => {
+            this.step = "configure";
+          }, this.WIFI_SCAN_TIMEOUT);
+        }, this.WIFI_MAC_RETRIEVE_TIMEOUT);
+      }, 500);
     } else {
-      this.presentToast("No conncection established!");
+      this.presentToast("Connection establishment failed!");
     }
   }
 
   async scan() {
+    console.log("Scanning for WiFi networks...");
     const networks = await this.esp32WifiBle.scanWifiNetworks(this.WIFI_SCAN_TIMEOUT);
+    console.log("Found networks:", networks);
     this.foundSSIDs = networks.map(n => n.ssid);
     this.foundSSIDs = this.foundSSIDs.filter((value, index) => this.foundSSIDs.indexOf(value) === index); // remove duplicates
   }
 
   async configure() {
-    await this.esp32WifiBle.configureWifi(this.ssid, this.password);
-    this.presentToast("Configuration sent!");
+    this.wiFiConnectionSuccessful = await this.esp32WifiBle.configureWifi(this.ssid, this.password);
+    if (this.wiFiConnectionSuccessful) {
+      this.presentToast("WiFi configured successfully!");
+    }
   }
 
   async presentToast(text: string) {
