@@ -1,13 +1,14 @@
-<ion-header>
-  <ion-toolbar>
-    <ion-title size="large">Blank</ion-title>
-  </ion-toolbar>
-</ion-header>
-
 <ion-content [fullscreen]="true">
+  <h1 class="headline" style="padding-left: 20px; padding-top: 10px">MedBox</h1>
+
   <div class="container">
-    <strong>Ready to create an app?</strong>
-    <p>Start with Ionic <a target="_blank" rel="noopener noreferrer" href="https://ionicframework.com/docs/components">UI Components</a></p>
-    <ion-button routerLink="/connect-new-stack">Connect new stack</ion-button>
+    <strong>Nothing to show here</strong>
+    <p>Start by connecting your first MedBox</p>
   </div>
+
+  <ion-fab style="position: absolute; bottom: 20px; right: 20px" routerLink="/connect-new-stack">
+    <ion-fab-button>
+      <ion-icon name="add">add</ion-icon>
+    </ion-fab-button>
+  </ion-fab>
 </ion-content>
