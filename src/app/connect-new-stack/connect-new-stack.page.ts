@@ -58,7 +58,7 @@ export class ConnectNewStackPage implements OnInit {
         // Wait for the MAC retrieval
         setTimeout(async () => {
           if (!this.connectedMACAddress) {
-            this.presentToast("Could not retrieve MAC address!");
+            this.presentToast("Could not retrieve MAC address!", 4000, "danger");
             return;
           }
           this.presentToast("Connected successfully to " + this.connectedMACAddress);
@@ -78,7 +78,7 @@ export class ConnectNewStackPage implements OnInit {
         }, this.WIFI_MAC_RETRIEVE_TIMEOUT);
       }, 500);
     } else {
-      this.presentToast("Connection establishment failed!");
+      this.presentToast("No connection! Is your MedBox powered on?", 4000, "danger");
     }
   }
 
@@ -97,11 +97,12 @@ export class ConnectNewStackPage implements OnInit {
     }
   }
 
-  async presentToast(text: string) {
+  async presentToast(text: string, duration = 1500, color = "medium") {
     const toast = await this.toastController.create({
       message: text,
-      duration: 1500,
+      duration,
       position: "bottom",
+      color
     });
 
     await toast.present();
