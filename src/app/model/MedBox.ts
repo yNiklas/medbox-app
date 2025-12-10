@@ -10,7 +10,7 @@ export interface MedBox {
 }
 
 export function nextDispenseOfBox(box: MedBox): {compartment: DispenseSchedule, time: number} | undefined {
-  let minTime = new Date().getTime();
+  let minTime = Number.MAX_VALUE;
   let minSchedule = undefined;
   box.compartments.forEach(schedule => {
     const dispenseTime = nextDispenseOfSchedule(schedule);

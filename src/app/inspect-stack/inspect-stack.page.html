@@ -1,0 +1,60 @@
+<ion-header [translucent]="true">
+  <ion-toolbar>
+    <ion-title>{{stack?.name || "Loading..."}}</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true">
+  <ion-refresher slot="fixed" (ionRefresh)="handleRefresh($event)"><ion-refresher-content></ion-refresher-content></ion-refresher>
+
+  @if (stack) {
+    <ion-header collapse="condense">
+      <ion-toolbar>
+        <ion-title size="large">{{stack.name}}</ion-title>
+        <ion-chip style="margin-left: 13px">{{stackStatusString(stack)}}</ion-chip>
+      </ion-toolbar>
+    </ion-header>
+
+    <div>
+      @if (nextDispenseOfStack(stack)) {
+        <ion-card color="secondary">
+          <ion-card-header>
+            <ion-card-title>{{nextDispenseOfStack(stack)?.time | dateCountdown}}</ion-card-title>
+            <ion-card-subtitle>Next dispense ({{nextDispenseOfStack(stack)?.box?.name}})</ion-card-subtitle>
+          </ion-card-header>
+        </ion-card>
+
+        @for (box of stack.boxes; track box.id) {
+          <ion-card>
+            <ion-card-header>
+              <ion-card-title>{{box.name}}</ion-card-title>
+              <ion-card-subtitle>{{medBoxStatusString(box.status)}}</ion-card-subtitle>
+            </ion-card-header>
+            <ion-card-content>
+              <ion-list>
+                @for (compartmentSchedule of box.compartments; track compartmentSchedule.name) {
+                  <ion-item>
+                    <ion-thumbnail slot="start">
+                      <img alt="Silhouette of mountains" src="https://ionicframework.com/docs/img/demos/thumbnail.svg" />
+                    </ion-thumbnail>
+                    <ion-label>
+                      {{compartmentSchedule.name}}
+                      @if (nextDispenseOfSchedule(compartmentSchedule)) {
+                        <br>
+                        {{nextDispenseOfSchedule(compartmentSchedule)! | dateCountdown}}
+                      }
+                    </ion-label>
+                  </ion-item>
+                }
+              </ion-list>
+            </ion-card-content>
+          </ion-card>
+        }
+      }
+    </div>
+  } @else {
+    <div class="container">
+      <ion-spinner name="crescent"></ion-spinner>
+    </div>
+  }
+</ion-content>

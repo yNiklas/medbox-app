@@ -31,7 +31,9 @@ export class ConnectNewStackPage implements OnInit {
   ssid = "";
   password = "";
 
-  step : "connect" | "wait_for_scan" | "configure" | "done" = "connect";
+  step: "naming" | "connect" | "wait_for_scan" | "configure" | "done" = "naming";
+  stackName = "";
+  masterBoxName = "";
   esp32ConnectionSuccessful: boolean | undefined = undefined;
   foundSSIDs: string[] = [];
   connectedMACAddress: string | undefined = undefined;
@@ -41,6 +43,10 @@ export class ConnectNewStackPage implements OnInit {
 
   async ngOnInit() {
     await this.esp32WifiBle.initialize();
+  }
+
+  proceedToConnectionScreen() {
+    this.step = "connect";
   }
 
   async connect() {

@@ -7,7 +7,7 @@ export interface MedBockStack {
 }
 
 export function nextDispenseOfStack(stack: MedBockStack): {box: MedBox, time: number} | undefined {
-  let minTime = new Date().getTime();
+  let minTime = Number.MAX_VALUE;
   let minBox = undefined;
   stack.boxes.forEach(box => {
     const dispense = nextDispenseOfBox(box);

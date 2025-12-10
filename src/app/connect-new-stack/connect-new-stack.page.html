@@ -6,10 +6,24 @@
 
 <ion-content>
   @switch (step) {
-    @case("connect") {
+    @case ("naming") {
       <div class="container">
         <strong>Ready to go?</strong>
-        <p>You're just one step away from never forgetting your pills again. Power your MedBox and click below.</p>
+        <p>You're just one step away from never forgetting your pills again</p>
+        <ion-list style="margin-top: 20px; margin-bottom: 20px">
+          <ion-item>
+            <ion-input label="Name your stack" [(ngModel)]="stackName" placeholder="My Stack"></ion-input>
+          </ion-item>
+          <ion-item>
+            <ion-input label="Name your box" [(ngModel)]="masterBoxName" placeholder="My MedBox"></ion-input>
+          </ion-item>
+        </ion-list>
+        <ion-button [disabled]="!stackName || !masterBoxName" (click)="proceedToConnectionScreen()">Next</ion-button>
+      </div>
+    }
+    @case("connect") {
+      <div class="container">
+        <p>Power your MedBox and click below</p>
         <ion-button (click)="connect()">Connect</ion-button>
       </div>
     }
@@ -17,7 +31,7 @@
       <div class="container">
         <ion-list>
           <ion-item>
-            <ion-select label="SSIOD" [(ngModel)]="ssid">
+            <ion-select label="SSID" [(ngModel)]="ssid">
               @for (ssid of foundSSIDs; track $index) {
                 <ion-select-option [value]="ssid">{{ssid}}</ion-select-option>
               }

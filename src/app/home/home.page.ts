@@ -6,13 +6,13 @@ import {
   IonFabButton,
   IonIcon, IonList, IonRefresher, IonRefresherContent, IonSpinner
 } from '@ionic/angular/standalone';
-import {RouterLink} from "@angular/router";
+import {Router, RouterLink} from "@angular/router";
 import {addIcons} from "ionicons";
 import {add} from "ionicons/icons";
 import {Backend} from "../services/backend";
 import {RefresherCustomEvent} from "@ionic/angular";
 import {stackStatusString} from "../model/MedBoxStatus";
-import {nextDispenseOfStack} from "../model/MedBockStack";
+import {MedBockStack, nextDispenseOfStack} from "../model/MedBockStack";
 
 @Component({
   selector: 'app-home',
@@ -21,6 +21,7 @@ import {nextDispenseOfStack} from "../model/MedBockStack";
   imports: [IonContent, RouterLink, IonFab, IonFabButton, IonIcon, IonSpinner, IonList, IonCard, IonCardHeader, IonCardTitle, IonCardSubtitle, IonCardContent, IonRefresher, IonRefresherContent],
 })
 export class HomePage {
+  private router = inject(Router);
   backendService = inject(Backend);
 
   constructor() {
@@ -29,6 +30,10 @@ export class HomePage {
 
   handleRefresh(event: RefresherCustomEvent) {
     this.backendService.fetchStacks().then(() => event.target.complete());
+  }
+
+  inspectStack(stack: MedBockStack) {
+    this.router.navigate(['/inspect-stack', stack.id], {state: {stack}});
   }
 
   protected readonly stackStatusString = stackStatusString;

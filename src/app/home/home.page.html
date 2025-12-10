@@ -15,7 +15,7 @@
   } @else {
     <ion-list>
       @for (stack of backendService.stacks; track stack.id) {
-        <ion-card>
+        <ion-card (click)="inspectStack(stack)">
           <ion-card-header>
             <ion-card-title>{{stack.name}}</ion-card-title>
             <ion-card-subtitle>{{stackStatusString(stack)}}</ion-card-subtitle>

@@ -13,5 +13,9 @@ export const routes: Routes = [
   {
     path: 'connect-new-stack',
     loadComponent: () => import('./connect-new-stack/connect-new-stack.page').then( m => m.ConnectNewStackPage)
+  },
+  {
+    path: 'inspect-stack/:id',
+    loadComponent: () => import('./inspect-stack/inspect-stack.page').then( m => m.InspectStackPage)
   }
 ];
