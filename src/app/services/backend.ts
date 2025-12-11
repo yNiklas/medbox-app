@@ -2,7 +2,7 @@ import {inject, Injectable} from '@angular/core';
 import {MedBockStack} from "../model/MedBockStack";
 import {HttpClient} from "@angular/common/http";
 import {environment} from "../../environments/environment";
-import {Observable} from "rxjs";
+import {lastValueFrom, Observable, Subscription} from "rxjs";
 
 @Injectable({
   providedIn: 'root',
@@ -17,41 +17,8 @@ export class Backend {
   }
 
   public fetchStacks(): Promise<void> {
-    this.http.get(environment.backendURL + "/stacks").subscribe({
-      next: boxes => {
-        console.log(boxes)
-      },
-      error: err => {
-        console.error("Failed to fetch stacks from backend:", err);
-      }
-    });
-
-    // Mock-impl
-    return new Promise((resolve, reject) => {
-      setTimeout(() => {
-        this.stacks = [
-          {
-            id: 'stack1',
-            name: 'MedBox Stack 1',
-            boxes: [
-              {
-                id: 'box1',
-                name: 'Box 1',
-                mac: "AC:DE:48:00:11:22",
-                status: {lastSeenAt: new Date().getTime() - 30 * 1000, error: undefined},
-                compartments: [{
-                  name: 'Compartment 1',
-                  intervals: [{
-                    start: new Date().getTime()-10000,
-                    interval: 60*1000
-                  }]
-                }]
-              },
-            ]
-          }
-        ];
-        resolve();
-      }, 2000);
+    return lastValueFrom(this.http.get<MedBockStack[]>(environment.backendURL + "/stacks")).then(stacks => {
+      this.stacks = stacks;
     });
   }
 
