@@ -1,6 +1,8 @@
 import {inject, Injectable} from '@angular/core';
 import {MedBockStack} from "../model/MedBockStack";
 import {HttpClient} from "@angular/common/http";
+import {environment} from "../../environments/environment";
+import {Observable} from "rxjs";
 
 @Injectable({
   providedIn: 'root',
@@ -15,6 +17,15 @@ export class Backend {
   }
 
   public fetchStacks(): Promise<void> {
+    this.http.get(environment.backendURL + "/stacks").subscribe({
+      next: boxes => {
+        console.log(boxes)
+      },
+      error: err => {
+        console.error("Failed to fetch stacks from backend:", err);
+      }
+    });
+
     // Mock-impl
     return new Promise((resolve, reject) => {
       setTimeout(() => {
@@ -90,6 +101,14 @@ export class Backend {
             }]
         });
       }, 2000);
+    });
+  }
+
+  public assignStack(masterMACAddress: string, boxName: string, stackName: string): Observable<void> {
+    return this.http.post<void>(environment.backendURL + "/stacks", {
+      masterMACAddress,
+      boxName,
+      stackName
     });
   }
 }

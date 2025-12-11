@@ -2,6 +2,7 @@
   <ion-refresher slot="fixed" (ionRefresh)="handleRefresh($event)"><ion-refresher-content></ion-refresher-content></ion-refresher>
 
   <h1 class="headline" style="padding-left: 20px; padding-top: 10px">MedBox</h1>
+  <ion-button (click)="logout()">Logout</ion-button>
 
   @if (backendService.stacks === undefined) {
     <div class="container">
@@ -21,7 +22,7 @@
             <ion-card-subtitle>{{stackStatusString(stack)}}</ion-card-subtitle>
           </ion-card-header>
           <ion-card-content>
-            <p>Next dispense: {{nextDispenseOfStack(stack)}}</p>
+            <p>Next dispense: {{nextDispenseOfStack(stack)?.time | dateCountdown}}</p>
           </ion-card-content>
         </ion-card>
       }

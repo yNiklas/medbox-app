@@ -3,7 +3,13 @@
 // The list of file replacements can be found in `angular.json`.
 
 export const environment = {
-  production: false
+  production: false,
+  backendURL: "http://localhost:8081/api/v1",
+  keycloakConfig: {
+    url: 'http://localhost:8080/',
+    realm: 'medbox',
+    clientId: 'medbox-app',
+  }
 };
 
 /*

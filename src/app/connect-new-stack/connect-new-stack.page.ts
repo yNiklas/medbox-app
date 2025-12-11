@@ -12,6 +12,7 @@ import {
   IonToolbar, LoadingController, ToastController
 } from '@ionic/angular/standalone';
 import {Esp32WifiBle} from "../services/esp32-wifi-ble";
+import {Backend} from "../services/backend";
 
 @Component({
   selector: 'app-connect-new-stack',
@@ -24,6 +25,7 @@ export class ConnectNewStackPage implements OnInit {
   readonly WIFI_MAC_RETRIEVE_TIMEOUT = 5_000; // ms
   readonly WIFI_SCAN_TIMEOUT = 10_000; // ms
 
+  private backendService = inject(Backend);
   private esp32WifiBle = inject(Esp32WifiBle);
   private toastController = inject(ToastController);
   private loadingCtrl = inject(LoadingController);
@@ -100,6 +102,7 @@ export class ConnectNewStackPage implements OnInit {
     this.wiFiConnectionSuccessful = await this.esp32WifiBle.configureWifi(this.ssid, this.password);
     if (this.wiFiConnectionSuccessful) {
       this.presentToast("WiFi configured successfully!");
+      this.backendService.assignStack(this.connectedMACAddress!, this.masterBoxName, this.stackName).subscribe();
     }
   }
 
