@@ -1,8 +1,8 @@
 export const environment = {
   production: true,
-  backendURL: "https://api.medbox.juliany.de/api/v1",
+  backendURL: "https://medbox-api.juliany.de/api/v1",
   keycloakConfig: {
-    url: 'https://auth.medbox.juliany.de/',
+    url: 'https://medbox-auth.juliany.de/',
     realm: 'medbox',
     clientId: 'medbox-app',
   }
