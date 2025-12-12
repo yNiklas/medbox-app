@@ -80,7 +80,7 @@ export class Backend {
   public deleteStack(id: string): Promise<void> {
     return lastValueFrom(this.http.delete<void>(environment.backendURL + "/stacks/" + id))
       .catch(err => this.toastController.create({
-        message: err.message,
+        message: err.error?.message || err.message,
         duration: 4000,
         position: "bottom",
         color: "danger"
