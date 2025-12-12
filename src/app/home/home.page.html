@@ -1,8 +1,10 @@
 <ion-content [fullscreen]="true">
   <ion-refresher slot="fixed" (ionRefresh)="handleRefresh($event)"><ion-refresher-content></ion-refresher-content></ion-refresher>
 
-  <h1 class="headline" style="padding-left: 20px; padding-top: 10px">MedBox</h1>
-  <ion-button (click)="logout()">Logout</ion-button>
+  <div style="padding-left: 20px; padding-right: 20px; padding-top: 10px; display: flex">
+    <h1 class="headline" style="flex: 1 1 auto">MedBox</h1>
+    <ion-button (click)="logout()" fill="clear"><ion-icon name="log-out-outline"></ion-icon></ion-button>
+  </div>
 
   @if (backendService.stacks === undefined) {
     <div class="container">

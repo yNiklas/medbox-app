@@ -13,6 +13,7 @@ import {
 } from '@ionic/angular/standalone';
 import {Esp32WifiBle} from "../services/esp32-wifi-ble";
 import {Backend} from "../services/backend";
+import {Router} from "@angular/router";
 
 @Component({
   selector: 'app-connect-new-stack',
@@ -29,6 +30,7 @@ export class ConnectNewStackPage implements OnInit {
   private esp32WifiBle = inject(Esp32WifiBle);
   private toastController = inject(ToastController);
   private loadingCtrl = inject(LoadingController);
+  private router = inject(Router);
 
   ssid = "";
   password = "";
@@ -102,7 +104,15 @@ export class ConnectNewStackPage implements OnInit {
     this.wiFiConnectionSuccessful = await this.esp32WifiBle.configureWifi(this.ssid, this.password);
     if (this.wiFiConnectionSuccessful) {
       this.presentToast("WiFi configured successfully!");
-      this.backendService.assignStack(this.connectedMACAddress!, this.masterBoxName, this.stackName).subscribe();
+      this.backendService.assignStack(this.connectedMACAddress!, this.masterBoxName, this.stackName).subscribe({
+        next: createdStack => {
+          this.presentToast("Stack registered successfully!", 3000, "success");
+          this.router.navigate(['/inspect-stack', createdStack.id]);
+        },
+        error: err => {
+          this.presentToast(err.message, 5000, "danger");
+        }
+      });
     }
   }
 

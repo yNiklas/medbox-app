@@ -9,7 +9,7 @@ import {
 } from '@ionic/angular/standalone';
 import {Router, RouterLink} from "@angular/router";
 import {addIcons} from "ionicons";
-import {add} from "ionicons/icons";
+import {add, logOutOutline} from "ionicons/icons";
 import {Backend} from "../services/backend";
 import {RefresherCustomEvent} from "@ionic/angular";
 import {stackStatusString} from "../model/MedBoxStatus";
@@ -29,7 +29,7 @@ export class HomePage {
   backendService = inject(Backend);
 
   constructor() {
-    addIcons({add});
+    addIcons({add, logOutOutline});
   }
 
   handleRefresh(event: RefresherCustomEvent) {

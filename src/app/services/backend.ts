@@ -2,13 +2,15 @@ import {inject, Injectable} from '@angular/core';
 import {MedBockStack} from "../model/MedBockStack";
 import {HttpClient} from "@angular/common/http";
 import {environment} from "../../environments/environment";
-import {lastValueFrom, Observable, Subscription} from "rxjs";
+import {lastValueFrom, Observable} from "rxjs";
+import {ToastController} from "@ionic/angular/standalone";
 
 @Injectable({
   providedIn: 'root',
 })
 export class Backend {
   private http = inject(HttpClient);
+  private toastController = inject(ToastController);
 
   stacks: MedBockStack[] | undefined = undefined;
 
@@ -17,65 +19,71 @@ export class Backend {
   }
 
   public fetchStacks(): Promise<void> {
+    this.stacks = [
+      {
+        id: 65656,
+        name: "Home MedBock",
+        boxes: [
+          {
+            id: 1,
+            mac: "AA:BB:CC:DD:EE:01",
+            name: "Master Box",
+            status: {
+              lastSeenAt: Date.now() - 2 * 60 * 1000,
+              error: undefined
+            },
+            compartments: [
+              {id: 1, name: "Compartment 1", intervals: undefined, remainingPills: 0, lastDispenseTime: undefined, runningOut: false},
+              {id: 2, name: "Compartment 2", intervals: [], remainingPills: 14, lastDispenseTime: Date.now() - 24 * 60 * 60 * 1000, runningOut: false},
+              {id: 56, name: "Compartment 3", intervals: [], remainingPills: 7, lastDispenseTime: Date.now() - 12 * 60 * 60 * 1000, runningOut: false, potentialErrorMessage: "Pills are stuck in the funnel, please clean"},
+              {id: 76576, name: "Compartment 4", intervals: [], remainingPills: 3, lastDispenseTime: Date.now() - 6 * 60 * 60 * 1000, runningOut: true, potentialErrorMessage: "Not enough pills! Refill 5 pills until Dex 27"}
+            ]
+          }
+        ]
+      }
+    ];
+    return Promise.resolve();
+
+
     return lastValueFrom(this.http.get<MedBockStack[]>(environment.backendURL + "/stacks")).then(stacks => {
       this.stacks = stacks;
     });
   }
 
   public fetchStackById(id: string): Promise<MedBockStack> {
-    // Mock-impl
-    return new Promise((resolve, reject) => {
-      setTimeout(() => {
-        resolve({
-          id: 'stack1',
-          name: 'MedBox Stack DEX',
-          boxes: [
-            {
-              id: 'box1',
-              name: 'Box 1',
-              mac: "AC:DE:48:00:11:22",
-              status: {lastSeenAt: new Date().getTime() - 30 * 1000, error: undefined},
-              compartments: [
-                {
-                  name: 'Compartment 1',
-                  intervals: [{
-                    start: new Date().getTime() - 10000,
-                    interval: 60 * 1000
-                  }]
-                },
-                {
-                  name: 'Compartment 2',
-                  intervals: [{
-                    start: new Date().getTime() - 20000,
-                    interval: 120 * 1000
-                  }]
-                },
-                {
-                  name: 'Compartment 3',
-                  intervals: [{
-                    start: new Date().getTime() - 30000,
-                    interval: 180 * 1000
-                  }]
-                },
-                {
-                  name: 'Compartment 4',
-                  intervals: [{
-                    start: new Date().getTime() - 40000,
-                    interval: 240 * 1000
-                  }]
-                }
-              ]
-            }]
-        });
-      }, 2000);
-    });
+    return new Promise((resolve, reject) => resolve(this.stacks![0]));
+
+
+    return lastValueFrom(this.http.get<MedBockStack>(environment.backendURL + "/stacks/" + id))
+      .catch(err => {
+        console.log(err)
+        return this.toastController.create({
+          message: err.error.message,
+          duration: 4000,
+          position: "bottom",
+          color: "danger"
+        }).then(toast => {
+          toast.present();
+          throw err;
+        })
+      });
   }
 
-  public assignStack(masterMACAddress: string, boxName: string, stackName: string): Observable<void> {
-    return this.http.post<void>(environment.backendURL + "/stacks", {
+  public assignStack(masterMACAddress: string, boxName: string, stackName: string): Observable<MedBockStack> {
+    return this.http.post<MedBockStack>(environment.backendURL + "/stacks", {
       masterMACAddress,
       boxName,
       stackName
     });
+  }
+
+  public deleteStack(id: string): Promise<void> {
+    return lastValueFrom(this.http.delete<void>(environment.backendURL + "/stacks/" + id))
+      .catch(err => this.toastController.create({
+        message: err.message,
+        duration: 4000,
+        position: "bottom",
+        color: "danger"
+      }).then(toast => toast.present()));
   }
 }

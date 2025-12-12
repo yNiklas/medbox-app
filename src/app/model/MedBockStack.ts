@@ -1,7 +1,7 @@
 import {MedBox, nextDispenseOfBox} from "./MedBox";
 
 export interface MedBockStack {
-  id: string;
+  id: number;
   name: string;
   boxes: MedBox[];
 }

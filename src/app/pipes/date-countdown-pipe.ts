@@ -4,7 +4,7 @@ import { Pipe, PipeTransform } from '@angular/core';
   name: 'dateCountdown'
 })
 export class DateCountdownPipe implements PipeTransform {
-  transform(value: Date | string | number | undefined): string {
+  transform(value: Date | string | number | null | undefined): string {
     if (!value) return "None";
 
     const target = new Date(value).getTime();
