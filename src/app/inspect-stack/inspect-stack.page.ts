@@ -1,14 +1,15 @@
-import {Component, inject} from '@angular/core';
+import {Component, inject, ViewChild} from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import {
   IonActionSheet,
   IonButton,
+  IonButtons,
   IonCard, IonCardContent,
   IonCardHeader, IonCardSubtitle, IonCardTitle,
   IonChip,
   IonContent,
-  IonHeader, IonIcon, IonImg, IonItem, IonLabel, IonList, IonRefresher, IonRefresherContent,
+  IonHeader, IonIcon, IonImg, IonInput, IonItem, IonLabel, IonList, IonModal, IonRefresher, IonRefresherContent,
   IonSpinner, IonThumbnail,
   IonTitle,
   IonToolbar
@@ -29,17 +30,39 @@ import {alertCircleOutline, ellipsisVerticalOutline, warningOutline} from "ionic
   templateUrl: './inspect-stack.page.html',
   styleUrls: ['./inspect-stack.page.scss'],
   standalone: true,
-  imports: [IonContent, IonHeader, IonTitle, IonToolbar, CommonModule, FormsModule, IonChip, IonSpinner, IonCard, IonCardHeader, IonCardTitle, IonCardSubtitle, IonCardContent, DateCountdownPipe, IonList, IonItem, IonLabel, IonThumbnail, IonRefresher, IonRefresherContent, IonIcon, IonButton, IonActionSheet]
+  imports: [IonContent, IonHeader, IonTitle, IonToolbar, CommonModule, FormsModule, IonChip, IonSpinner, IonCard, IonCardHeader, IonCardTitle, IonCardSubtitle, IonCardContent, DateCountdownPipe, IonList, IonItem, IonLabel, IonThumbnail, IonRefresher, IonRefresherContent, IonIcon, IonButton, IonActionSheet, IonModal, IonButtons, IonInput]
 })
 export class InspectStackPage  {
+  @ViewChild('renameBoxModal') renameBoxModal!: IonModal;
+  @ViewChild('deleteBoxModal') deleteBoxModal!: IonModal;
+  @ViewChild('renameStackModal') renameStackModal!: IonModal;
+  @ViewChild('deleteStackModal') deleteStackModal!: IonModal;
+
   private route = inject(ActivatedRoute);
   private router = inject(Router);
   private backendService = inject(Backend);
   private readonly stackId: string | undefined = undefined;
 
   stack: MedBockStack | undefined = undefined;
+  
+  // Properties for modal inputs
+  renameBoxName: string = '';
+  renameStackName: string = '';
+  currentBoxId: number | undefined = undefined;
 
   readonly boxOptionsSheetActions = [
+    {
+      text: 'Rename',
+      data: {action: "rename"}
+    },
+    {
+      text: "Delete",
+      role: "destructive",
+      data: {action: "delete"},
+    }
+  ]
+
+  readonly stackOptionsSheetActions = [
     {
       text: 'Rename',
       data: {action: "rename"}
@@ -82,10 +105,81 @@ export class InspectStackPage  {
   handleBoxEvent(event: CustomEvent, boxId: number) {
     const action = event.detail.data.action;
     if (action === "rename") {
-
+      this.openRenameBoxModal(boxId);
     } else if (action === "delete") {
-
+      this.openDeleteBoxModal(boxId);
     }
+  }
+
+  handleStackEvent(event: CustomEvent) {
+    const action = event.detail.data.action;
+    if (action === "rename") {
+      this.openRenameStackModal();
+    } else if (action === "delete") {
+      this.openDeleteStackModal();
+    }
+  }
+
+  openRenameBoxModal(boxId: number) {
+    this.currentBoxId = boxId;
+    const box = this.stack?.boxes.find(b => b.id === boxId);
+    this.renameBoxName = box?.name || '';
+    this.renameBoxModal.present();
+  }
+
+  openDeleteBoxModal(boxId: number) {
+    this.currentBoxId = boxId;
+    this.deleteBoxModal.present();
+  }
+
+  openRenameStackModal() {
+    this.renameStackName = this.stack?.name || '';
+    this.renameStackModal.present();
+  }
+
+  openDeleteStackModal() {
+    this.deleteStackModal.present();
+  }
+
+  confirmRenameBox() {
+    if (!this.currentBoxId || !this.renameBoxName.trim()) {
+      return;
+    }
+    this.backendService.renameBox(this.stackId!, this.currentBoxId, this.renameBoxName.trim())
+      .then(() => {
+        this.renameBoxModal.dismiss();
+        this.fetchStack();
+      });
+  }
+
+  confirmDeleteBox() {
+    if (!this.currentBoxId) {
+      return;
+    }
+    this.backendService.deleteBox(this.stackId!, this.currentBoxId)
+      .then(() => {
+        this.deleteBoxModal.dismiss();
+        this.fetchStack();
+      });
+  }
+
+  confirmRenameStack() {
+    if (!this.renameStackName.trim()) {
+      return;
+    }
+    this.backendService.renameStack(this.stackId!, this.renameStackName.trim())
+      .then(() => {
+        this.renameStackModal.dismiss();
+        this.fetchStack();
+      });
+  }
+
+  confirmDeleteStack() {
+    this.backendService.deleteStack(this.stackId!)
+      .then(() => {
+        this.deleteStackModal.dismiss();
+        this.router.navigate(['/home']);
+      });
   }
 
   protected readonly stackStatusString = stackStatusString;
