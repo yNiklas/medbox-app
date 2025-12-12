@@ -1,27 +1,19 @@
-<ion-header [translucent]="true">
-  <ion-toolbar>
-    <ion-title>{{ stack?.name || "Loading..." }}</ion-title>
-  </ion-toolbar>
-</ion-header>
-
 <ion-content [fullscreen]="true">
   <ion-refresher slot="fixed" (ionRefresh)="handleRefresh($event)">
     <ion-refresher-content></ion-refresher-content>
   </ion-refresher>
 
   @if (stack) {
-    <ion-header collapse="condense">
-      <ion-toolbar>
-        <ion-title size="large">{{ stack.name }}</ion-title>
-        <ion-button
-          id="open-stack-options-sheet"
-          slot="end"
-          fill="clear">
-          <ion-icon name="ellipsis-vertical-outline"></ion-icon>
-        </ion-button>
-        <ion-chip style="margin-left: 13px">{{ stackStatusString(stack) }}</ion-chip>
-      </ion-toolbar>
-    </ion-header>
+    <div style="display: flex; padding-left: 20px; padding-right: 20px; padding-top: 10px">
+      <h1 class="headline" style="flex: 1 1 auto">{{stack.name}}</h1>
+      <ion-button
+        id="open-stack-options-sheet"
+        slot="end"
+        fill="clear">
+        <ion-icon name="ellipsis-vertical-outline"></ion-icon>
+      </ion-button>
+    </div>
+    <ion-chip style="margin-left: 13px">{{ stackStatusString(stack) }}</ion-chip>
 
     <div>
       @if (nextDispenseOfStack(stack)) {
@@ -50,7 +42,7 @@
           <ion-card-content>
             <ion-list>
               @for (compartment of box.compartments; track compartment.name) {
-                <ion-item>
+                <ion-item (click)="inspectCompartment(compartment.id)">
                   <ion-thumbnail slot="start">
                     <img alt="Silhouette of mountains" src="https://ionicframework.com/docs/img/demos/thumbnail.svg"/>
                   </ion-thumbnail>

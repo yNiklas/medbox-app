@@ -1,5 +1,5 @@
 import {MedBoxStatus} from "./MedBoxStatus";
-import {Compartment, nextDispenseOfSchedule} from "./Compartment";
+import {Compartment, nextDispenseOfCompartment} from "./Compartment";
 
 export interface MedBox {
   id: number;
@@ -13,7 +13,7 @@ export function nextDispenseOfBox(box: MedBox): {compartment: Compartment, time:
   let minTime = Number.MAX_VALUE;
   let minSchedule = undefined;
   box.compartments.forEach(schedule => {
-    const dispenseTime = nextDispenseOfSchedule(schedule);
+    const dispenseTime = nextDispenseOfCompartment(schedule);
     if (dispenseTime && dispenseTime.getTime() < minTime) {
       minTime = dispenseTime.getTime();
       minSchedule = schedule;

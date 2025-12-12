@@ -20,7 +20,7 @@ import {medBoxStatusString, stackStatusString} from "../model/MedBoxStatus";
 import {Backend} from "../services/backend";
 import {DateCountdownPipe} from "../pipes/date-countdown-pipe";
 import {nextDispenseOfBox} from "../model/MedBox";
-import {nextDispenseOfSchedule} from "../model/Compartment";
+import {nextDispenseOfCompartment} from "../model/Compartment";
 import {RefresherCustomEvent} from "@ionic/angular";
 import {addIcons} from "ionicons";
 import {alertCircleOutline, ellipsisVerticalOutline, warningOutline} from "ionicons/icons";
@@ -44,7 +44,7 @@ export class InspectStackPage  {
   private stackId: string | undefined = undefined;
 
   stack: MedBockStack | undefined = undefined;
-  
+
   // Properties for modal inputs
   renameBoxName: string = '';
   renameStackName: string = '';
@@ -145,10 +145,12 @@ export class InspectStackPage  {
     if (!this.stackId || !this.currentBoxId || !this.renameBoxName.trim()) {
       return;
     }
-    this.backendService.renameBox(this.stackId, this.currentBoxId, this.renameBoxName.trim())
-      .then(() => {
+    this.backendService.renameBox(this.currentBoxId, this.renameBoxName.trim())
+      .then(updatedBox => {
         this.renameBoxModal.dismiss();
-        this.fetchStack();
+        if (updatedBox && this.stack) {
+          this.stack.boxes.find(b => b.id === this.currentBoxId)!.name = updatedBox?.name;
+        }
       });
   }
 
@@ -156,7 +158,7 @@ export class InspectStackPage  {
     if (!this.stackId || !this.currentBoxId) {
       return;
     }
-    this.backendService.deleteBox(this.stackId, this.currentBoxId)
+    this.backendService.deleteBox(this.currentBoxId)
       .then(() => {
         this.deleteBoxModal.dismiss();
         this.fetchStack();
@@ -168,9 +170,11 @@ export class InspectStackPage  {
       return;
     }
     this.backendService.renameStack(this.stackId, this.renameStackName.trim())
-      .then(() => {
+      .then(updatedStack => {
         this.renameStackModal.dismiss();
-        this.fetchStack();
+        if (updatedStack && this.stack) {
+          this.stack.name = updatedStack?.name;
+        }
       });
   }
 
@@ -185,9 +189,13 @@ export class InspectStackPage  {
       });
   }
 
+  inspectCompartment(id: number){
+    this.router.navigate(['/inspect-compartment', id]);
+  }
+
   protected readonly stackStatusString = stackStatusString;
   protected readonly nextDispenseOfStack = nextDispenseOfStack;
   protected readonly medBoxStatusString = medBoxStatusString;
   protected readonly nextDispenseOfBox = nextDispenseOfBox;
-  protected readonly nextDispenseOfSchedule = nextDispenseOfSchedule;
+  protected readonly nextDispenseOfSchedule = nextDispenseOfCompartment;
 }

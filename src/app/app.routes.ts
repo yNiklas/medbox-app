@@ -21,5 +21,9 @@ export const routes: Routes = [
     path: 'inspect-stack/:id',
     loadComponent: () => import('./inspect-stack/inspect-stack.page').then( m => m.InspectStackPage),
     canActivate: [canActivateAuth]
+  },
+  {
+    path: 'inspect-compartment/:id',
+    loadComponent: () => import('./inspect-compartment/inspect-compartment.page').then( m => m.InspectCompartmentPage)
   }
 ];

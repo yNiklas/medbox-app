@@ -1,0 +1,28 @@
+<ion-content [fullscreen]="true">
+  <ion-refresher slot="fixed" (ionRefresh)="handleRefresh($event)">
+    <ion-refresher-content></ion-refresher-content>
+  </ion-refresher>
+
+  @if (compartment) {
+    <div style="display: flex; padding-left: 20px; padding-right: 20px; padding-top: 10px">
+      <h1 class="headline" style="flex: 1 1 auto">{{compartment.name}}</h1>
+      <ion-button
+        id="open-compartment-options-sheet"
+        slot="end"
+        fill="clear">
+        <ion-icon name="ellipsis-vertical-outline"></ion-icon>
+      </ion-button>
+    </div>
+
+    <ion-card color="secondary">
+      <ion-card-header>
+        <ion-card-title>{{nextDispenseOfSchedule(compartment) | dateCountdown}}</ion-card-title>
+        <ion-card-subtitle>Next Dispense</ion-card-subtitle>
+      </ion-card-header>
+    </ion-card>
+  } @else {
+    <div class="container">
+      <ion-spinner></ion-spinner>
+    </div>
+  }
+</ion-content>

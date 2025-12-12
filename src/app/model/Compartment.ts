@@ -14,7 +14,7 @@ export interface DispenseInterval {
   pillsToDispense: number;
 }
 
-export function nextDispenseOfSchedule(schedule: Compartment): Date | null {
+export function nextDispenseOfCompartment(schedule: Compartment): Date | null {
   if (!schedule.intervals || schedule.intervals.length === 0) return null;
 
   const now = new Date().getTime();

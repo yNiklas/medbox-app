@@ -4,6 +4,8 @@ import {HttpClient} from "@angular/common/http";
 import {environment} from "../../environments/environment";
 import {lastValueFrom, Observable} from "rxjs";
 import {ToastController} from "@ionic/angular/standalone";
+import {MedBox} from "../model/MedBox";
+import {Compartment} from "../model/Compartment";
 
 @Injectable({
   providedIn: 'root',
@@ -87,8 +89,8 @@ export class Backend {
       }).then(toast => toast.present()));
   }
 
-  public renameStack(id: string, newName: string): Promise<void> {
-    return lastValueFrom(this.http.patch<void>(environment.backendURL + "/stacks/" + id, {name: newName}))
+  public renameStack(id: string, newName: string): Promise<MedBockStack | void> {
+    return lastValueFrom(this.http.patch<MedBockStack>(environment.backendURL + "/stacks/" + id + "/name", {updatedName: newName}))
       .catch(err => this.toastController.create({
         message: err.error?.message || err.message,
         duration: 4000,
@@ -97,8 +99,8 @@ export class Backend {
       }).then(toast => toast.present()));
   }
 
-  public renameBox(stackId: string, boxId: number, newName: string): Promise<void> {
-    return lastValueFrom(this.http.patch<void>(environment.backendURL + "/stacks/" + stackId + "/boxes/" + boxId, {name: newName}))
+  public renameBox(boxId: number, newName: string): Promise<MedBox | void> {
+    return lastValueFrom(this.http.patch<MedBox>(environment.backendURL + "/boxes/" + boxId + "/name", {updatedName: newName}))
       .catch(err => this.toastController.create({
         message: err.error?.message || err.message,
         duration: 4000,
@@ -107,13 +109,29 @@ export class Backend {
       }).then(toast => toast.present()));
   }
 
-  public deleteBox(stackId: string, boxId: number): Promise<void> {
-    return lastValueFrom(this.http.delete<void>(environment.backendURL + "/stacks/" + stackId + "/boxes/" + boxId))
+  public deleteBox(boxId: number): Promise<void> {
+    return lastValueFrom(this.http.delete<void>(environment.backendURL + "/boxes/" + boxId))
       .catch(err => this.toastController.create({
         message: err.error?.message || err.message,
         duration: 4000,
         position: "bottom",
         color: "danger"
       }).then(toast => toast.present()));
+  }
+
+  public fetchCompartmentById(id: string): Promise<Compartment> {
+    return new Promise((resolve, reject) => resolve(this.stacks![0].boxes[0].compartments[0]));
+
+
+    return lastValueFrom(this.http.get<Compartment>(environment.backendURL + "/compartments/" + id))
+      .catch(err => this.toastController.create({
+        message: err.error?.message || err.message,
+        duration: 4000,
+        position: "bottom",
+        color: "danger"
+      }).then(toast => {
+        toast.present();
+        throw err;
+      }));
   }
 }
