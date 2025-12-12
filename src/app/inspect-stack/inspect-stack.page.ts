@@ -41,7 +41,7 @@ export class InspectStackPage  {
   private route = inject(ActivatedRoute);
   private router = inject(Router);
   private backendService = inject(Backend);
-  private readonly stackId: string | undefined = undefined;
+  private stackId: string | undefined = undefined;
 
   stack: MedBockStack | undefined = undefined;
   
@@ -142,10 +142,10 @@ export class InspectStackPage  {
   }
 
   confirmRenameBox() {
-    if (!this.currentBoxId || !this.renameBoxName.trim()) {
+    if (!this.stackId || !this.currentBoxId || !this.renameBoxName.trim()) {
       return;
     }
-    this.backendService.renameBox(this.stackId!, this.currentBoxId, this.renameBoxName.trim())
+    this.backendService.renameBox(this.stackId, this.currentBoxId, this.renameBoxName.trim())
       .then(() => {
         this.renameBoxModal.dismiss();
         this.fetchStack();
@@ -153,10 +153,10 @@ export class InspectStackPage  {
   }
 
   confirmDeleteBox() {
-    if (!this.currentBoxId) {
+    if (!this.stackId || !this.currentBoxId) {
       return;
     }
-    this.backendService.deleteBox(this.stackId!, this.currentBoxId)
+    this.backendService.deleteBox(this.stackId, this.currentBoxId)
       .then(() => {
         this.deleteBoxModal.dismiss();
         this.fetchStack();
@@ -164,10 +164,10 @@ export class InspectStackPage  {
   }
 
   confirmRenameStack() {
-    if (!this.renameStackName.trim()) {
+    if (!this.stackId || !this.renameStackName.trim()) {
       return;
     }
-    this.backendService.renameStack(this.stackId!, this.renameStackName.trim())
+    this.backendService.renameStack(this.stackId, this.renameStackName.trim())
       .then(() => {
         this.renameStackModal.dismiss();
         this.fetchStack();
@@ -175,7 +175,10 @@ export class InspectStackPage  {
   }
 
   confirmDeleteStack() {
-    this.backendService.deleteStack(this.stackId!)
+    if (!this.stackId) {
+      return;
+    }
+    this.backendService.deleteStack(this.stackId)
       .then(() => {
         this.deleteStackModal.dismiss();
         this.router.navigate(['/home']);

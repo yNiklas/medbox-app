@@ -90,7 +90,7 @@ export class Backend {
   public renameStack(id: string, newName: string): Promise<void> {
     return lastValueFrom(this.http.patch<void>(environment.backendURL + "/stacks/" + id, {name: newName}))
       .catch(err => this.toastController.create({
-        message: err.message,
+        message: err.error?.message || err.message,
         duration: 4000,
         position: "bottom",
         color: "danger"
@@ -100,7 +100,7 @@ export class Backend {
   public renameBox(stackId: string, boxId: number, newName: string): Promise<void> {
     return lastValueFrom(this.http.patch<void>(environment.backendURL + "/stacks/" + stackId + "/boxes/" + boxId, {name: newName}))
       .catch(err => this.toastController.create({
-        message: err.message,
+        message: err.error?.message || err.message,
         duration: 4000,
         position: "bottom",
         color: "danger"
@@ -110,7 +110,7 @@ export class Backend {
   public deleteBox(stackId: string, boxId: number): Promise<void> {
     return lastValueFrom(this.http.delete<void>(environment.backendURL + "/stacks/" + stackId + "/boxes/" + boxId))
       .catch(err => this.toastController.create({
-        message: err.message,
+        message: err.error?.message || err.message,
         duration: 4000,
         position: "bottom",
         color: "danger"
