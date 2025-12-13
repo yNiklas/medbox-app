@@ -134,4 +134,48 @@ export class Backend {
         throw err;
       }));
   }
+
+  public renameCompartment(id: string, newName: string): Promise<Compartment | void> {
+    return lastValueFrom(this.http.patch<Compartment>(environment.backendURL + "/compartments/" + id + "/name", {updatedName: newName}))
+      .catch(err => this.toastController.create({
+        message: err.error?.message || err.message,
+        duration: 4000,
+        position: "bottom",
+        color: "danger"
+      }).then(toast => toast.present()));
+  }
+
+  public deleteCompartment(id: string): Promise<void> {
+    return lastValueFrom(this.http.delete<void>(environment.backendURL + "/compartments/" + id))
+      .catch(err => this.toastController.create({
+        message: err.error?.message || err.message,
+        duration: 4000,
+        position: "bottom",
+        color: "danger"
+      }).then(toast => toast.present()));
+  }
+
+  public updateDispenseInterval(intervalId: number, interval: number, start: number, pillsToDispense: number): Promise<void> {
+    return lastValueFrom(this.http.patch<void>(environment.backendURL + "/dispense-intervals/" + intervalId, {
+      interval,
+      start,
+      pillsToDispense
+    }))
+      .catch(err => this.toastController.create({
+        message: err.error?.message || err.message,
+        duration: 4000,
+        position: "bottom",
+        color: "danger"
+      }).then(toast => toast.present()));
+  }
+
+  public deleteDispenseInterval(intervalId: number): Promise<void> {
+    return lastValueFrom(this.http.delete<void>(environment.backendURL + "/dispense-intervals/" + intervalId))
+      .catch(err => this.toastController.create({
+        message: err.error?.message || err.message,
+        duration: 4000,
+        position: "bottom",
+        color: "danger"
+      }).then(toast => toast.present()));
+  }
 }

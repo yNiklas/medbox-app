@@ -65,7 +65,7 @@
         <h2 style="padding-left: 20px; font-weight: bold">Dispense Intervals</h2>
         <ion-list [inset]="true">
           @for (interval of compartment.intervals; track interval.id) {
-            <ion-item>
+            <ion-item [button]="true" [id]="'open-interval-options-sheet-' + interval.id">
               <ion-label>
                 Every {{formatDispenseInterval(interval)}}
               </ion-label>
@@ -86,4 +86,151 @@
       <ion-spinner></ion-spinner>
     </div>
   }
+
+  <ion-action-sheet
+    (didDismiss)="handleCompartmentEvent($event)"
+    trigger="open-compartment-options-sheet"
+    header="Compartment Actions"
+    [buttons]="compartmentOptionsSheetActions">
+  </ion-action-sheet>
+
+  @for (interval of compartment?.intervals; track interval.id) {
+    <ion-action-sheet
+      (didDismiss)="handleIntervalEvent($event, interval.id)"
+      [trigger]="'open-interval-options-sheet-' + interval.id"
+      header="Interval Actions"
+      [buttons]="intervalOptionsSheetActions">
+    </ion-action-sheet>
+  }
+
+  <!-- Modal for compartment name change -->
+  <ion-modal #renameCompartmentModal>
+    <ng-template>
+      <ion-header>
+        <ion-toolbar>
+          <ion-title>Rename Compartment</ion-title>
+          <ion-buttons slot="end">
+            <ion-button (click)="renameCompartmentModal.dismiss()">Cancel</ion-button>
+          </ion-buttons>
+        </ion-toolbar>
+      </ion-header>
+      <ion-content>
+        <ion-list>
+          <ion-item>
+            <ion-input
+              label="Compartment Name"
+              labelPlacement="floating"
+              [(ngModel)]="renameCompartmentName"
+              placeholder="Enter new compartment name">
+            </ion-input>
+          </ion-item>
+        </ion-list>
+        <ion-button expand="block" (click)="confirmRenameCompartment()">Rename</ion-button>
+      </ion-content>
+    </ng-template>
+  </ion-modal>
+
+  <!-- Modal to confirm compartment deletion -->
+  <ion-modal #deleteCompartmentModal>
+    <ng-template>
+      <ion-header>
+        <ion-toolbar>
+          <ion-title>Delete Compartment</ion-title>
+          <ion-buttons slot="end">
+            <ion-button (click)="deleteCompartmentModal.dismiss()">Cancel</ion-button>
+          </ion-buttons>
+        </ion-toolbar>
+      </ion-header>
+      <ion-content>
+        <div style="padding: 20px;">
+          <p>Are you sure you want to delete this compartment?</p>
+          <p><strong>This action cannot be undone.</strong></p>
+        </div>
+        <ion-button expand="block" color="danger" (click)="confirmDeleteCompartment()">Delete</ion-button>
+      </ion-content>
+    </ng-template>
+  </ion-modal>
+
+  <!-- Modal for editing dispense interval -->
+  <ion-modal #editIntervalModal>
+    <ng-template>
+      <ion-header>
+        <ion-toolbar>
+          <ion-title>Edit Interval</ion-title>
+          <ion-buttons slot="end">
+            <ion-button (click)="editIntervalModal.dismiss()">Cancel</ion-button>
+          </ion-buttons>
+        </ion-toolbar>
+      </ion-header>
+      <ion-content>
+        <ion-list>
+          <ion-item>
+            <ion-input
+              label="Interval Value"
+              labelPlacement="floating"
+              type="number"
+              [(ngModel)]="editIntervalValue"
+              placeholder="Enter interval value">
+            </ion-input>
+          </ion-item>
+          <ion-item>
+            <ion-select
+              label="Time Unit"
+              labelPlacement="floating"
+              [(ngModel)]="editIntervalUnit"
+              placeholder="Select time unit">
+              <ion-select-option value="hours">Hours</ion-select-option>
+              <ion-select-option value="days">Days</ion-select-option>
+              <ion-select-option value="weeks">Weeks</ion-select-option>
+            </ion-select>
+          </ion-item>
+          <ion-item>
+            <ion-input
+              label="Pills to Dispense"
+              labelPlacement="floating"
+              type="number"
+              [(ngModel)]="editIntervalPills"
+              placeholder="Enter number of pills">
+            </ion-input>
+          </ion-item>
+          <ion-item>
+            <ion-datetime-button datetime="interval-start-datetime"></ion-datetime-button>
+            <ion-label>Start Time</ion-label>
+          </ion-item>
+        </ion-list>
+        <ion-button expand="block" (click)="confirmEditInterval()">Save</ion-button>
+
+        <ion-modal [keepContentsMounted]="true">
+          <ng-template>
+            <ion-datetime
+              id="interval-start-datetime"
+              [(ngModel)]="editIntervalStartTime"
+              presentation="date-time">
+            </ion-datetime>
+          </ng-template>
+        </ion-modal>
+      </ion-content>
+    </ng-template>
+  </ion-modal>
+
+  <!-- Modal to confirm interval deletion -->
+  <ion-modal #deleteIntervalModal>
+    <ng-template>
+      <ion-header>
+        <ion-toolbar>
+          <ion-title>Delete Interval</ion-title>
+          <ion-buttons slot="end">
+            <ion-button (click)="deleteIntervalModal.dismiss()">Cancel</ion-button>
+          </ion-buttons>
+        </ion-toolbar>
+      </ion-header>
+      <ion-content>
+        <div style="padding: 20px;">
+          <p>Are you sure you want to delete this dispense interval?</p>
+          <p><strong>This action cannot be undone.</strong></p>
+        </div>
+        <ion-button expand="block" color="danger" (click)="confirmDeleteInterval()">Delete</ion-button>
+      </ion-content>
+    </ng-template>
+  </ion-modal>
 </ion-content>
