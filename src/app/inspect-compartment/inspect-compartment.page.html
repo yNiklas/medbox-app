@@ -14,12 +14,73 @@
       </ion-button>
     </div>
 
-    <ion-card color="secondary">
-      <ion-card-header>
-        <ion-card-title>{{nextDispenseOfSchedule(compartment) | dateCountdown}}</ion-card-title>
-        <ion-card-subtitle>Next Dispense</ion-card-subtitle>
-      </ion-card-header>
-    </ion-card>
+    <div style="margin-left: 15px; margin-right: 15px">
+      @if (compartment.potentialErrorMessage) {
+        <br>
+        <ion-chip color="danger">
+          <ion-icon name="alert-circle-outline"></ion-icon>
+          <ion-label>{{ compartment.potentialErrorMessage }}</ion-label>
+        </ion-chip>
+      }
+      @if (compartment.runningOut) {
+        <br>
+        <ion-chip color="warning">
+          <ion-icon name="warning-outline"></ion-icon>
+          <ion-label>Pills running out</ion-label>
+        </ion-chip>
+      }
+    </div>
+
+    @if (nextDispenseIntervalOfCompartment(compartment)) {
+      <ion-card color="secondary">
+        <ion-card-header>
+          <ion-card-title>
+            {{nextDispenseOfCompartment(compartment) | dateCountdown}}
+            ({{nextDispenseIntervalOfCompartment(compartment)?.pillsToDispense}}
+            {{nextDispenseIntervalOfCompartment(compartment)?.pillsToDispense === 1 ? "pill" : "pills"}})
+          </ion-card-title>
+          <ion-card-subtitle>Next Dispense</ion-card-subtitle>
+        </ion-card-header>
+        <ion-content>
+          {{nextDispenseIntervalOfCompartment(compartment)?.pillsToDispense}} pills to take
+        </ion-content>
+      </ion-card>
+    }
+
+    @if (compartment.lastDispenseTime && compartment.lastDispenseTime > 0) {
+      <ion-card>
+        <ion-card-header>
+          <ion-card-title>{{compartment.lastDispenseTime | date:"short"}}</ion-card-title>
+          <ion-card-subtitle>Last Dispense</ion-card-subtitle>
+        </ion-card-header>
+      </ion-card>
+    }
+
+    @if (!compartment.intervals || compartment.intervals.length === 0) {
+      <div class="container">
+        No dispense schedule. Start by creating one.
+      </div>
+    } @else {
+      <div style="margin-top: 40px">
+        <h2 style="padding-left: 20px; font-weight: bold">Dispense Intervals</h2>
+        <ion-list [inset]="true">
+          @for (interval of compartment.intervals; track interval.id) {
+            <ion-item>
+              <ion-label>
+                Every {{formatDispenseInterval(interval)}}
+              </ion-label>
+              <ion-badge slot="end" color="primary">{{interval.pillsToDispense}} {{interval.pillsToDispense === 1 ? "pill" : "pills"}}</ion-badge>
+            </ion-item>
+          }
+        </ion-list>
+      </div>
+    }
+
+    <ion-fab style="position: absolute; bottom: 20px; right: 20px" routerLink="/connect-new-stack">
+      <ion-fab-button>
+        <ion-icon name="add">add</ion-icon>
+      </ion-fab-button>
+    </ion-fab>
   } @else {
     <div class="container">
       <ion-spinner></ion-spinner>

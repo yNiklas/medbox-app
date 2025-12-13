@@ -52,18 +52,18 @@
                       <br>
                       {{ nextDispenseOfSchedule(compartment)! | dateCountdown }}
                     }
-                    @if (compartment.runningOut) {
-                      <br>
-                      <ion-chip color="warning">
-                        <ion-icon name="warning-outline"></ion-icon>
-                        <ion-label>Pills running out</ion-label>
-                      </ion-chip>
-                    }
                     @if (compartment.potentialErrorMessage) {
                       <br>
                       <ion-chip color="danger">
                         <ion-icon name="alert-circle-outline"></ion-icon>
                         <ion-label>{{ compartment.potentialErrorMessage }}</ion-label>
+                      </ion-chip>
+                    }
+                    @if (compartment.runningOut) {
+                      <br>
+                      <ion-chip color="warning">
+                        <ion-icon name="warning-outline"></ion-icon>
+                        <ion-label>Pills running out</ion-label>
                       </ion-chip>
                     }
                   </ion-label>

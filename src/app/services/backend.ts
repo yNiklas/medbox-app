@@ -36,9 +36,9 @@ export class Backend {
             },
             compartments: [
               {id: 1, name: "Compartment 1", intervals: undefined, remainingPills: 0, lastDispenseTime: undefined, runningOut: false},
-              {id: 2, name: "Compartment 2", intervals: [], remainingPills: 14, lastDispenseTime: Date.now() - 24 * 60 * 60 * 1000, runningOut: false},
-              {id: 56, name: "Compartment 3", intervals: [], remainingPills: 7, lastDispenseTime: Date.now() - 12 * 60 * 60 * 1000, runningOut: false, potentialErrorMessage: "Pills are stuck in the funnel, please clean"},
-              {id: 76576, name: "Compartment 4", intervals: [], remainingPills: 3, lastDispenseTime: Date.now() - 6 * 60 * 60 * 1000, runningOut: true, potentialErrorMessage: "Not enough pills! Refill 5 pills until Dex 27"}
+              {id: 2, name: "Compartment 2", intervals: [{id: 4, interval: 24*60*60*1000, start: new Date().getTime()-5000, pillsToDispense: 2}, {id: 2, interval: 12*60*60*1000, start: new Date().getTime()-2000, pillsToDispense: 1}], remainingPills: 14, lastDispenseTime: Date.now() - 24 * 60 * 60 * 1000, runningOut: false},
+              {id: 56, name: "Compartment 3", intervals: [{id: 4, interval: 24*60*60*1000, start: new Date().getTime()-5000, pillsToDispense: 2}], remainingPills: 7, lastDispenseTime: Date.now() - 12 * 60 * 60 * 1000, runningOut: false, potentialErrorMessage: "Pills are stuck in the funnel, please clean"},
+              {id: 76576, name: "Compartment 4", intervals: [{id: 4, interval: 24*60*60*1000, start: new Date().getTime()-5000, pillsToDispense: 2}], remainingPills: 3, lastDispenseTime: Date.now() - 6 * 60 * 60 * 1000, runningOut: true, potentialErrorMessage: "Not enough pills! Refill 5 pills until Dex 27"}
             ]
           }
         ]
@@ -120,7 +120,7 @@ export class Backend {
   }
 
   public fetchCompartmentById(id: string): Promise<Compartment> {
-    return new Promise((resolve, reject) => resolve(this.stacks![0].boxes[0].compartments[0]));
+    return new Promise((resolve, reject) => resolve(this.stacks![0].boxes[0].compartments[1]));
 
 
     return lastValueFrom(this.http.get<Compartment>(environment.backendURL + "/compartments/" + id))

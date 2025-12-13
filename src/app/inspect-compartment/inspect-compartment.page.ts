@@ -2,18 +2,24 @@ import {Component, inject} from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import {
-  IonButton, IonCard, IonCardHeader, IonCardSubtitle, IonCardTitle,
-  IonContent,
-  IonIcon,
+  IonBadge,
+  IonButton, IonCard, IonCardHeader, IonCardSubtitle, IonCardTitle, IonChip,
+  IonContent, IonFab, IonFabButton,
+  IonIcon, IonItem, IonLabel, IonList,
   IonRefresher,
   IonRefresherContent, IonSpinner,
 } from '@ionic/angular/standalone';
 import {RefresherCustomEvent} from "@ionic/angular";
-import {Compartment, nextDispenseOfCompartment} from "../model/Compartment";
+import {
+  Compartment,
+  formatDispenseInterval,
+  nextDispenseIntervalOfCompartment,
+  nextDispenseOfCompartment
+} from "../model/Compartment";
 import {Backend} from "../services/backend";
-import {ActivatedRoute, Router} from "@angular/router";
+import {ActivatedRoute, Router, RouterLink} from "@angular/router";
 import {addIcons} from "ionicons";
-import {ellipsisVerticalOutline} from "ionicons/icons";
+import {add, alertCircleOutline, ellipsisVerticalOutline, warningOutline} from "ionicons/icons";
 import {DateCountdownPipe} from "../pipes/date-countdown-pipe";
 
 @Component({
@@ -21,7 +27,7 @@ import {DateCountdownPipe} from "../pipes/date-countdown-pipe";
   templateUrl: './inspect-compartment.page.html',
   styleUrls: ['./inspect-compartment.page.scss'],
   standalone: true,
-  imports: [IonContent, CommonModule, FormsModule, IonRefresher, IonRefresherContent, IonButton, IonIcon, IonCard, IonCardHeader, IonCardTitle, IonCardSubtitle, DateCountdownPipe, IonSpinner]
+  imports: [IonContent, CommonModule, FormsModule, IonRefresher, IonRefresherContent, IonButton, IonIcon, IonCard, IonCardHeader, IonCardTitle, IonCardSubtitle, DateCountdownPipe, IonSpinner, IonFab, IonFabButton, RouterLink, IonChip, IonLabel, IonList, IonItem, IonBadge]
 })
 export class InspectCompartmentPage  {
   private route = inject(ActivatedRoute);
@@ -32,7 +38,8 @@ export class InspectCompartmentPage  {
   compartment: Compartment | undefined = undefined;
 
   constructor() {
-    addIcons({ellipsisVerticalOutline});
+    addIcons({ellipsisVerticalOutline, add, alertCircleOutline, warningOutline});
+
     this.compartmentId = this.route.snapshot.paramMap.get("id") || undefined;
     if (!this.compartmentId) {
       this.router.navigate(['/home']);
@@ -58,5 +65,7 @@ export class InspectCompartmentPage  {
     });
   }
 
-  protected readonly nextDispenseOfSchedule = nextDispenseOfCompartment;
+  protected readonly nextDispenseOfCompartment = nextDispenseOfCompartment;
+  protected readonly nextDispenseIntervalOfCompartment = nextDispenseIntervalOfCompartment;
+  protected readonly formatDispenseInterval = formatDispenseInterval;
 }
