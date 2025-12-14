@@ -49,7 +49,7 @@ export class InspectCompartmentPage  {
   private route = inject(ActivatedRoute);
   private router = inject(Router);
   private backendService = inject(Backend);
-  private compartmentId: string | undefined = undefined;
+  private compartmentId: number | undefined = undefined;
 
   private editIntervalModalEditMode = false;
 
@@ -90,8 +90,8 @@ export class InspectCompartmentPage  {
   constructor() {
     addIcons({ellipsisVerticalOutline, add, alertCircleOutline, warningOutline});
 
-    this.compartmentId = this.route.snapshot.paramMap.get("id") || undefined;
-    if (!this.compartmentId) {
+    this.compartmentId = Number(this.route.snapshot.paramMap.get("id")) || undefined;
+    if (!this.compartmentId || isNaN(this.compartmentId)) {
       this.router.navigate(['/home']);
       return;
     }
@@ -236,7 +236,12 @@ export class InspectCompartmentPage  {
         this.fetchCompartment();
       });
     } else {
+      if (!this.compartmentId) {
+        return;
+      }
+
       this.backendService.createDispenseInterval(
+        this.compartmentId,
         intervalMs,
         startTime,
         this.editIntervalPills
