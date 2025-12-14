@@ -38,7 +38,7 @@ import {DateCountdownPipe} from "../pipes/date-countdown-pipe";
   templateUrl: './inspect-compartment.page.html',
   styleUrls: ['./inspect-compartment.page.scss'],
   standalone: true,
-  imports: [IonContent, CommonModule, FormsModule, IonRefresher, IonRefresherContent, IonButton, IonIcon, IonCard, IonCardHeader, IonCardTitle, IonCardSubtitle, DateCountdownPipe, IonSpinner, IonFab, IonFabButton, RouterLink, IonChip, IonLabel, IonList, IonItem, IonBadge, IonActionSheet, IonModal, IonHeader, IonToolbar, IonTitle, IonButtons, IonInput, IonSelect, IonSelectOption, IonDatetime, IonDatetimeButton]
+  imports: [IonContent, CommonModule, FormsModule, IonRefresher, IonRefresherContent, IonButton, IonIcon, IonCard, IonCardHeader, IonCardTitle, IonCardSubtitle, DateCountdownPipe, IonSpinner, IonFab, IonFabButton, IonChip, IonLabel, IonList, IonItem, IonBadge, IonActionSheet, IonModal, IonHeader, IonToolbar, IonTitle, IonButtons, IonInput, IonSelect, IonSelectOption, IonDatetime, IonDatetimeButton]
 })
 export class InspectCompartmentPage  {
   @ViewChild('renameCompartmentModal') renameCompartmentModal!: IonModal;

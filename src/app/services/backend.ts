@@ -155,10 +155,10 @@ export class Backend {
       }).then(toast => toast.present()));
   }
 
-  public updateDispenseInterval(intervalId: number, interval: number, start: number, pillsToDispense: number): Promise<void> {
+  public updateDispenseInterval(intervalId: number, interval: number, startTime: number, pillsToDispense: number): Promise<void> {
     return lastValueFrom(this.http.patch<void>(environment.backendURL + "/dispense-intervals/" + intervalId, {
       interval,
-      start,
+      startTime,
       pillsToDispense
     }))
       .catch(err => this.toastController.create({
