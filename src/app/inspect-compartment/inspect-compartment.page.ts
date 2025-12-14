@@ -51,6 +51,8 @@ export class InspectCompartmentPage  {
   private backendService = inject(Backend);
   private compartmentId: string | undefined = undefined;
 
+  private editIntervalModalEditMode = false;
+
   compartment: Compartment | undefined = undefined;
 
   // Properties for modal inputs
@@ -141,6 +143,7 @@ export class InspectCompartmentPage  {
   }
 
   openEditIntervalModal(intervalId: number) {
+    this.editIntervalModalEditMode = true;
     this.currentIntervalId = intervalId;
     const interval = this.compartment?.intervals?.find(i => i.id === intervalId);
     if (interval) {
@@ -163,6 +166,16 @@ export class InspectCompartmentPage  {
       this.editIntervalPills = interval.pillsToDispense;
       this.editIntervalStartTime = new Date(interval.start).toISOString();
     }
+    this.editIntervalModal.present();
+  }
+
+  openEditIntervalModalForNew() {
+    this.editIntervalModalEditMode = false;
+    this.currentIntervalId = undefined;
+    this.editIntervalValue = 1;
+    this.editIntervalUnit = 'days';
+    this.editIntervalPills = 1;
+    this.editIntervalStartTime = new Date().toISOString();
     this.editIntervalModal.present();
   }
 
@@ -196,10 +209,6 @@ export class InspectCompartmentPage  {
   }
 
   confirmEditInterval() {
-    if (!this.compartmentId || !this.currentIntervalId) {
-      return;
-    }
-
     // Convert to milliseconds
     let intervalMs = this.editIntervalValue;
     if (this.editIntervalUnit === 'hours') {
@@ -212,15 +221,30 @@ export class InspectCompartmentPage  {
 
     const startTime = new Date(this.editIntervalStartTime).getTime();
 
-    this.backendService.updateDispenseInterval(
-      this.currentIntervalId,
-      intervalMs,
-      startTime,
-      this.editIntervalPills
-    ).then(() => {
-      this.editIntervalModal.dismiss();
-      this.fetchCompartment();
-    });
+    if (this.editIntervalModalEditMode) {
+      if (!this.currentIntervalId) {
+        return;
+      }
+
+      this.backendService.updateDispenseInterval(
+        this.currentIntervalId,
+        intervalMs,
+        startTime,
+        this.editIntervalPills
+      ).then(() => {
+        this.editIntervalModal.dismiss();
+        this.fetchCompartment();
+      });
+    } else {
+      this.backendService.createDispenseInterval(
+        intervalMs,
+        startTime,
+        this.editIntervalPills
+      ).then(() => {
+        this.editIntervalModal.dismiss();
+        this.fetchCompartment();
+      });
+    }
   }
 
   confirmDeleteInterval() {

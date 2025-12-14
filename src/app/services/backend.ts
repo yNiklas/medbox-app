@@ -155,6 +155,20 @@ export class Backend {
       }).then(toast => toast.present()));
   }
 
+  public createDispenseInterval(interval: number, startTime: number, pillsToDispense: number): Promise<void> {
+    return lastValueFrom(this.http.post<void>(environment.backendURL + "/dispense-intervals", {
+      interval,
+      startTime,
+      pillsToDispense
+    }))
+      .catch(err => this.toastController.create({
+        message: err.error?.message || err.message,
+        duration: 4000,
+        position: "bottom",
+        color: "danger"
+      }).then(toast => toast.present()));
+  }
+
   public updateDispenseInterval(intervalId: number, interval: number, startTime: number, pillsToDispense: number): Promise<void> {
     return lastValueFrom(this.http.patch<void>(environment.backendURL + "/dispense-intervals/" + intervalId, {
       interval,
