@@ -50,7 +50,7 @@
     @if (compartment.lastDispenseTime && compartment.lastDispenseTime > 0) {
       <ion-card>
         <ion-card-header>
-          <ion-card-title>{{compartment.lastDispenseTime | date:"short"}}</ion-card-title>
+          <ion-card-title>{{compartment.lastDispenseTime | date:"MMM d, h:mma"}}</ion-card-title>
           <ion-card-subtitle>Last Dispense</ion-card-subtitle>
         </ion-card-header>
       </ion-card>

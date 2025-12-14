@@ -44,7 +44,7 @@
               @for (compartment of box.compartments; track compartment.name) {
                 <ion-item (click)="inspectCompartment(compartment.id)">
                   <ion-thumbnail slot="start">
-                    <img alt="Silhouette of mountains" src="https://ionicframework.com/docs/img/demos/thumbnail.svg"/>
+                    <img alt="Pill" [src]="'pill_icons/' + $index + '.png'"/>
                   </ion-thumbnail>
                   <ion-label>
                     {{ compartment.name }}
