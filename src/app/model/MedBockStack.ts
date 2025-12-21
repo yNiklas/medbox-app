@@ -4,6 +4,8 @@ export interface MedBockStack {
   id: number;
   name: string;
   boxes: MedBox[];
+  orderChanged: boolean;
+  danglingMACs: {[mac: string]: number};
 }
 
 export function nextDispenseOfStack(stack: MedBockStack): {box: MedBox, time: number} | undefined {

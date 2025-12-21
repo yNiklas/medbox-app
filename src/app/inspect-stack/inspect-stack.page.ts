@@ -9,7 +9,7 @@ import {
   IonCardHeader, IonCardSubtitle, IonCardTitle,
   IonChip,
   IonContent,
-  IonHeader, IonIcon, IonImg, IonInput, IonItem, IonLabel, IonList, IonModal, IonRefresher, IonRefresherContent,
+  IonHeader, IonIcon, IonInput, IonItem, IonLabel, IonList, IonModal, IonRefresher, IonRefresherContent,
   IonSpinner, IonThumbnail,
   IonTitle,
   IonToolbar
@@ -19,7 +19,7 @@ import {MedBockStack, nextDispenseOfStack} from "../model/MedBockStack";
 import {medBoxStatusString, stackStatusString} from "../model/MedBoxStatus";
 import {Backend} from "../services/backend";
 import {DateCountdownPipe} from "../pipes/date-countdown-pipe";
-import {nextDispenseOfBox} from "../model/MedBox";
+import {MedBox, nextDispenseOfBox} from "../model/MedBox";
 import {nextDispenseOfCompartment} from "../model/Compartment";
 import {RefresherCustomEvent} from "@ionic/angular";
 import {addIcons} from "ionicons";
@@ -100,6 +100,19 @@ export class InspectStackPage  {
     return this.backendService.fetchStackById(this.stackId)
       .catch(() => this.router.navigate(["/home"]))
       .then(stack => this.stack = stack as MedBockStack);
+  }
+
+  getBoxesToShow(): (MedBox | string)[] {
+    if (!this.stack) {
+      return [];
+    }
+
+    const boxesIncludeDangling: (MedBox | string)[] = [...this.stack.boxes];
+    for (const mac in this.stack.danglingMACs) {
+      const index = this.stack.danglingMACs[mac];
+      boxesIncludeDangling.splice(index, 0, mac);
+    }
+    return boxesIncludeDangling;
   }
 
   handleBoxEvent(event: CustomEvent, boxId: number) {

@@ -25,60 +25,72 @@
         </ion-card>
       }
 
-      @for (box of stack.boxes; track box.id) {
-        <ion-card>
-          <ion-button
-            id="open-box-options-sheet-{{ box.id }}"
-            fill="clear"
-            style="position: absolute; top: 25px; right: 5px; z-index: 100">
-            <ion-icon name="ellipsis-vertical-outline"></ion-icon>
-          </ion-button>
+      @for (box of getBoxesToShow(); track $index) {
+        @if (typeof box === "string") {
+          <ion-card color="tertiary">
+            <ion-card-header>
+              <ion-card-title>New MedBox</ion-card-title>
+              <ion-card-subtitle>{{box}}</ion-card-subtitle>
+            </ion-card-header>
+            <ion-card-content>
+              Click to assign
+            </ion-card-content>
+          </ion-card>
+        } @else {
+          <ion-card>
+            <ion-button
+              id="open-box-options-sheet-{{ box.id }}"
+              fill="clear"
+              style="position: absolute; top: 25px; right: 5px; z-index: 100">
+              <ion-icon name="ellipsis-vertical-outline"></ion-icon>
+            </ion-button>
 
-          <ion-card-header>
-            <ion-card-title>{{ box.name }}</ion-card-title>
-            <ion-card-subtitle>{{ medBoxStatusString(box.status) }}</ion-card-subtitle>
-          </ion-card-header>
+            <ion-card-header>
+              <ion-card-title>{{ box.name }}</ion-card-title>
+              <ion-card-subtitle>{{ medBoxStatusString(box.status) }}</ion-card-subtitle>
+            </ion-card-header>
 
-          <ion-card-content>
-            <ion-list>
-              @for (compartment of box.compartments; track compartment.name) {
-                <ion-item (click)="inspectCompartment(compartment.id)">
-                  <ion-thumbnail slot="start">
-                    <img alt="Pill" [src]="'pill_icons/' + $index + '.png'"/>
-                  </ion-thumbnail>
-                  <ion-label>
-                    {{ compartment.name }}
-                    @if (nextDispenseOfSchedule(compartment)) {
-                      <br>
-                      {{ nextDispenseOfSchedule(compartment)! | dateCountdown }}
-                    }
-                    @if (compartment.potentialErrorMessage) {
-                      <br>
-                      <ion-chip color="danger">
-                        <ion-icon name="alert-circle-outline"></ion-icon>
-                        <ion-label>{{ compartment.potentialErrorMessage }}</ion-label>
-                      </ion-chip>
-                    }
-                    @if (compartment.runningOut) {
-                      <br>
-                      <ion-chip color="warning">
-                        <ion-icon name="warning-outline"></ion-icon>
-                        <ion-label>Pills running out</ion-label>
-                      </ion-chip>
-                    }
-                  </ion-label>
-                </ion-item>
-              }
-            </ion-list>
-          </ion-card-content>
-        </ion-card>
+            <ion-card-content>
+              <ion-list>
+                @for (compartment of box.compartments; track compartment.name) {
+                  <ion-item (click)="inspectCompartment(compartment.id)">
+                    <ion-thumbnail slot="start">
+                      <img alt="Pill" [src]="'pill_icons/' + $index + '.png'"/>
+                    </ion-thumbnail>
+                    <ion-label>
+                      {{ compartment.name }}
+                      @if (nextDispenseOfSchedule(compartment)) {
+                        <br>
+                        {{ nextDispenseOfSchedule(compartment)! | dateCountdown }}
+                      }
+                      @if (compartment.potentialErrorMessage) {
+                        <br>
+                        <ion-chip color="danger">
+                          <ion-icon name="alert-circle-outline"></ion-icon>
+                          <ion-label>{{ compartment.potentialErrorMessage }}</ion-label>
+                        </ion-chip>
+                      }
+                      @if (compartment.runningOut) {
+                        <br>
+                        <ion-chip color="warning">
+                          <ion-icon name="warning-outline"></ion-icon>
+                          <ion-label>Pills running out</ion-label>
+                        </ion-chip>
+                      }
+                    </ion-label>
+                  </ion-item>
+                }
+              </ion-list>
+            </ion-card-content>
+          </ion-card>
 
-        <ion-action-sheet
-          (didDismiss)="handleBoxEvent($event, box.id)"
-          trigger="open-box-options-sheet-{{ box.id }}"
-          header="Actions"
-          [buttons]="boxOptionsSheetActions">
-        </ion-action-sheet>
+          <ion-action-sheet
+            (didDismiss)="handleBoxEvent($event, box.id)"
+            trigger="open-box-options-sheet-{{ box.id }}"
+            header="Actions"
+            [buttons]="boxOptionsSheetActions">
+          </ion-action-sheet>
+        }
       }
     </div>
   } @else {
