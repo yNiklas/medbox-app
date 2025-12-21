@@ -227,7 +227,7 @@
             <ion-label>MAC Address: {{onboardBoxMac}}</ion-label>
           </ion-item>
         </ion-list>
-        <ion-button expand="block" (click)="confirmOnboardDanglingBox()">Onboard</ion-button>
+        <ion-button expand="block" (click)="confirmOnboardDanglingBox()" [disabled]="!onboardBoxName.trim()">Onboard</ion-button>
       </ion-content>
     </ng-template>
   </ion-modal>
