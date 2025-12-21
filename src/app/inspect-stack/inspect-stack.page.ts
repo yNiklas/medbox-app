@@ -12,8 +12,7 @@ import {
   IonHeader, IonIcon, IonInput, IonItem, IonLabel, IonList, IonModal, IonRefresher, IonRefresherContent,
   IonSpinner, IonThumbnail,
   IonTitle,
-  IonToolbar,
-  ToastController
+  IonToolbar
 } from '@ionic/angular/standalone';
 import {ActivatedRoute, Router} from "@angular/router";
 import {MedBockStack, nextDispenseOfStack} from "../model/MedBockStack";
@@ -43,7 +42,6 @@ export class InspectStackPage  {
   private route = inject(ActivatedRoute);
   private router = inject(Router);
   private backendService = inject(Backend);
-  private toastController = inject(ToastController);
   private stackId: string | undefined = undefined;
 
   stack: MedBockStack | undefined = undefined;
@@ -215,12 +213,6 @@ export class InspectStackPage  {
 
   confirmOnboardDanglingBox() {
     if (!this.stackId || !this.onboardBoxMac || !this.onboardBoxName.trim()) {
-      this.toastController.create({
-        message: 'Please provide a valid box name',
-        duration: 3000,
-        position: "bottom",
-        color: "warning"
-      }).then(toast => toast.present());
       return;
     }
     this.backendService.onboardDanglingBox(this.stackId, this.onboardBoxName.trim(), this.onboardBoxMac)
