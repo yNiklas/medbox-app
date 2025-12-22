@@ -21,6 +21,7 @@ export class Backend {
   }
 
   public fetchStacks(): Promise<void> {
+    /*
     this.stacks = [
       {
         id: 65656,
@@ -101,6 +102,7 @@ export class Backend {
       },
     ];
     return Promise.resolve();
+     */
 
 
     return lastValueFrom(this.http.get<MedBockStack[]>(environment.backendURL + "/stacks")).then(stacks => {
@@ -109,7 +111,7 @@ export class Backend {
   }
 
   public fetchStackById(id: string): Promise<MedBockStack> {
-    return new Promise((resolve, reject) => resolve(this.stacks![0]));
+    //return new Promise((resolve, reject) => resolve(this.stacks![0]));
 
 
     return lastValueFrom(this.http.get<MedBockStack>(environment.backendURL + "/stacks/" + id))
@@ -176,7 +178,7 @@ export class Backend {
   }
 
   public fetchCompartmentById(id: number): Promise<Compartment> {
-    return new Promise((resolve, reject) => resolve(this.stacks![0].boxes[0].compartments[1]));
+    //return new Promise((resolve, reject) => resolve(this.stacks![0].boxes[0].compartments[1]));
 
 
     return lastValueFrom(this.http.get<Compartment>(environment.backendURL + "/compartments/" + id))
