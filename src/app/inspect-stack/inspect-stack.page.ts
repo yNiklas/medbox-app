@@ -37,6 +37,7 @@ export class InspectStackPage  {
   @ViewChild('deleteBoxModal') deleteBoxModal!: IonModal;
   @ViewChild('renameStackModal') renameStackModal!: IonModal;
   @ViewChild('deleteStackModal') deleteStackModal!: IonModal;
+  @ViewChild('onboardDanglingBoxModal') onboardDanglingBoxModal!: IonModal;
 
   private route = inject(ActivatedRoute);
   private router = inject(Router);
@@ -49,6 +50,8 @@ export class InspectStackPage  {
   renameBoxName: string = '';
   renameStackName: string = '';
   currentBoxId: number | undefined = undefined;
+  onboardBoxName: string = '';
+  onboardBoxMac: string = '';
 
   readonly boxOptionsSheetActions = [
     {
@@ -199,6 +202,23 @@ export class InspectStackPage  {
       .then(() => {
         this.deleteStackModal.dismiss();
         this.router.navigate(['/home']);
+      });
+  }
+
+  openOnboardDanglingBoxModal(mac: string) {
+    this.onboardBoxMac = mac;
+    this.onboardBoxName = '';
+    this.onboardDanglingBoxModal.present();
+  }
+
+  confirmOnboardDanglingBox() {
+    if (!this.stackId || !this.onboardBoxMac || !this.onboardBoxName.trim()) {
+      return;
+    }
+    this.backendService.onboardDanglingBox(this.stackId, this.onboardBoxName.trim(), this.onboardBoxMac)
+      .then(() => {
+        this.onboardDanglingBoxModal.dismiss();
+        this.fetchStack();
       });
   }
 

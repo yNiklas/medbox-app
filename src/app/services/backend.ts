@@ -249,4 +249,17 @@ export class Backend {
         color: "danger"
       }).then(toast => toast.present()));
   }
+
+  public onboardDanglingBox(stackId: string, boxName: string, boxMac: string): Promise<MedBox | void> {
+    return lastValueFrom(this.http.post<MedBox>(environment.backendURL + "/stacks/" + stackId + "/slave-onboarding", {
+      boxName,
+      boxMac
+    }))
+      .catch(err => this.toastController.create({
+        message: err.error?.message || err.message,
+        duration: 4000,
+        position: "bottom",
+        color: "danger"
+      }).then(toast => toast.present()));
+  }
 }
