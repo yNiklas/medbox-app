@@ -5,7 +5,9 @@ export interface MedBoxStatus {
   error: string | undefined;
 }
 
-export function medBoxStatusString(status: MedBoxStatus): string {
+export function medBoxStatusString(status: MedBoxStatus | undefined): string {
+  if (!status) return "";
+
   if (status.error) {
     return `Error: ${status.error}`;
   } else if (new Date().getTime() - status.lastSeenAt < 60 * 1000) {
@@ -21,6 +23,8 @@ export function stackStatusString(stack: MedBockStack): string {
     return "Online";
   } else if (boxStatuses.some(status => status.startsWith("Error"))) {
     return "Error";
+  } else if (boxStatuses.every(status => status.length === 0)) {
+    return "Unknown Status";
   } else {
     const oldestSeen = Math.min(...stack.boxes.map(box => box.status.lastSeenAt));
     return "Last seen " + new Date(oldestSeen).toLocaleString();
