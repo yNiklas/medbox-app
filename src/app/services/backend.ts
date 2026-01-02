@@ -264,4 +264,14 @@ export class Backend {
         color: "danger"
       }).then(toast => toast.present()));
   }
+
+  public refillCompartment(compartmentId: number, pillsToAdd: number): Promise<Compartment | void> {
+    return lastValueFrom(this.http.patch<Compartment>(environment.backendURL + "/compartments/" + compartmentId + "/refill", {pillsToAdd}))
+      .catch(err => this.toastController.create({
+        message: err.error?.message || err.message,
+        duration: 4000,
+        position: "bottom",
+        color: "danger"
+      }).then(toast => toast.present()));
+  }
 }

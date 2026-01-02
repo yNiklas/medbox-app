@@ -19,6 +19,7 @@ import {
   IonSpinner,
   IonTitle,
   IonToolbar,
+  ToastController,
 } from '@ionic/angular/standalone';
 import {RefresherCustomEvent} from "@ionic/angular";
 import {
@@ -45,10 +46,12 @@ export class InspectCompartmentPage  {
   @ViewChild('deleteCompartmentModal') deleteCompartmentModal!: IonModal;
   @ViewChild('editIntervalModal') editIntervalModal!: IonModal;
   @ViewChild('deleteIntervalModal') deleteIntervalModal!: IonModal;
+  @ViewChild('refillModal') refillModal!: IonModal;
 
   private route = inject(ActivatedRoute);
   private router = inject(Router);
   private backendService = inject(Backend);
+  private toastController = inject(ToastController);
   private compartmentId: number | undefined = undefined;
 
   private editIntervalModalEditMode = false;
@@ -62,6 +65,7 @@ export class InspectCompartmentPage  {
   editIntervalPills: number = 1;
   editIntervalStartTime: string = new Date().toISOString();
   currentIntervalId: number | undefined = undefined;
+  refillPillsToAdd: number = 1;
 
   readonly compartmentOptionsSheetActions = [
     {
@@ -260,6 +264,33 @@ export class InspectCompartmentPage  {
       .then(() => {
         this.deleteIntervalModal.dismiss();
         this.fetchCompartment();
+      });
+  }
+
+  openRefillModal() {
+    this.refillPillsToAdd = 1;
+    this.refillModal.present();
+  }
+
+  confirmRefill() {
+    if (!this.compartmentId) {
+      return;
+    }
+    if (this.refillPillsToAdd <= 0) {
+      this.toastController.create({
+        message: 'Please enter a valid number of pills to add',
+        duration: 3000,
+        position: 'bottom',
+        color: 'warning'
+      }).then(toast => toast.present());
+      return;
+    }
+    this.backendService.refillCompartment(this.compartmentId, this.refillPillsToAdd)
+      .then((result) => {
+        if (result) {
+          this.refillModal.dismiss();
+          this.fetchCompartment();
+        }
       });
   }
 
