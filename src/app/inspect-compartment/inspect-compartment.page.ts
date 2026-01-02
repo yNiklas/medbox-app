@@ -286,9 +286,11 @@ export class InspectCompartmentPage  {
       return;
     }
     this.backendService.refillCompartment(this.compartmentId, this.refillPillsToAdd)
-      .then(() => {
-        this.refillModal.dismiss();
-        this.fetchCompartment();
+      .then((result) => {
+        if (result) {
+          this.refillModal.dismiss();
+          this.fetchCompartment();
+        }
       });
   }
 
