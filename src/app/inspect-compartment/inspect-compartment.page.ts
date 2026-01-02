@@ -65,7 +65,7 @@ export class InspectCompartmentPage  {
   editIntervalPills: number = 1;
   editIntervalStartTime: string = new Date().toISOString();
   currentIntervalId: number | undefined = undefined;
-  refillPillsToAdd: number = 0;
+  refillPillsToAdd: number = 1;
 
   readonly compartmentOptionsSheetActions = [
     {
@@ -268,7 +268,7 @@ export class InspectCompartmentPage  {
   }
 
   openRefillModal() {
-    this.refillPillsToAdd = 0;
+    this.refillPillsToAdd = 1;
     this.refillModal.present();
   }
 
