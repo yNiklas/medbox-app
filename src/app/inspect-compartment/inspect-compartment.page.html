@@ -256,12 +256,13 @@
               label="Pills to Add"
               labelPlacement="floating"
               type="number"
+              min="1"
               [(ngModel)]="refillPillsToAdd"
               placeholder="Enter number of pills to add">
             </ion-input>
           </ion-item>
         </ion-list>
-        <ion-button expand="block" (click)="confirmRefill()">Refill</ion-button>
+        <ion-button expand="block" [disabled]="refillPillsToAdd <= 0" (click)="confirmRefill()">Refill</ion-button>
       </ion-content>
     </ng-template>
   </ion-modal>
