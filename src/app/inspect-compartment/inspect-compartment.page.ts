@@ -19,6 +19,7 @@ import {
   IonSpinner,
   IonTitle,
   IonToolbar,
+  ToastController,
 } from '@ionic/angular/standalone';
 import {RefresherCustomEvent} from "@ionic/angular";
 import {
@@ -50,6 +51,7 @@ export class InspectCompartmentPage  {
   private route = inject(ActivatedRoute);
   private router = inject(Router);
   private backendService = inject(Backend);
+  private toastController = inject(ToastController);
   private compartmentId: number | undefined = undefined;
 
   private editIntervalModalEditMode = false;
@@ -271,7 +273,16 @@ export class InspectCompartmentPage  {
   }
 
   confirmRefill() {
-    if (!this.compartmentId || this.refillPillsToAdd <= 0) {
+    if (!this.compartmentId) {
+      return;
+    }
+    if (this.refillPillsToAdd <= 0) {
+      this.toastController.create({
+        message: 'Please enter a valid number of pills to add',
+        duration: 3000,
+        position: 'bottom',
+        color: 'warning'
+      }).then(toast => toast.present());
       return;
     }
     this.backendService.refillCompartment(this.compartmentId, this.refillPillsToAdd)
