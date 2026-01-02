@@ -45,6 +45,7 @@ export class InspectCompartmentPage  {
   @ViewChild('deleteCompartmentModal') deleteCompartmentModal!: IonModal;
   @ViewChild('editIntervalModal') editIntervalModal!: IonModal;
   @ViewChild('deleteIntervalModal') deleteIntervalModal!: IonModal;
+  @ViewChild('refillModal') refillModal!: IonModal;
 
   private route = inject(ActivatedRoute);
   private router = inject(Router);
@@ -62,6 +63,7 @@ export class InspectCompartmentPage  {
   editIntervalPills: number = 1;
   editIntervalStartTime: string = new Date().toISOString();
   currentIntervalId: number | undefined = undefined;
+  refillPillsToAdd: number = 0;
 
   readonly compartmentOptionsSheetActions = [
     {
@@ -260,6 +262,24 @@ export class InspectCompartmentPage  {
       .then(() => {
         this.deleteIntervalModal.dismiss();
         this.fetchCompartment();
+      });
+  }
+
+  openRefillModal() {
+    this.refillPillsToAdd = 0;
+    this.refillModal.present();
+  }
+
+  confirmRefill() {
+    if (!this.compartmentId || this.refillPillsToAdd <= 0) {
+      return;
+    }
+    this.backendService.refillCompartment(this.compartmentId, this.refillPillsToAdd)
+      .then((updatedCompartment) => {
+        this.refillModal.dismiss();
+        if (updatedCompartment && this.compartment) {
+          this.compartment.remainingPills = updatedCompartment.remainingPills;
+        }
       });
   }
 
