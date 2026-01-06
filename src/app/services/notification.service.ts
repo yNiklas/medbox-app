@@ -80,7 +80,7 @@ export class NotificationService {
             title: 'Pills Dispensed',
             body: `${compartment.name} from ${box.name} has been dispensed`,
             id: this.notificationId++,
-            schedule: { at: new Date(Date.now() + 1000) }, // Schedule for 1 second from now
+            schedule: { at: new Date(Date.now() + 2000) }, // Schedule for 2 seconds from now to ensure proper processing
             sound: undefined,
             attachments: undefined,
             actionTypeId: '',
@@ -159,7 +159,7 @@ export class NotificationService {
             title: 'Pills Running Low',
             body: `${compartment.name} in ${box.name} needs refilling (${compartment.remainingPills} pills left)`,
             id: this.notificationId++,
-            schedule: { at: new Date(Date.now() + 1000) },
+            schedule: { at: new Date(Date.now() + 2000) }, // Schedule for 2 seconds from now to ensure proper processing
             sound: undefined,
             attachments: undefined,
             actionTypeId: '',
@@ -194,13 +194,12 @@ export class NotificationService {
   /**
    * Get all pending notifications
    */
-  async getPendingNotifications(): Promise<any[]> {
+  async getPendingNotifications(): Promise<{ notifications: any[] }> {
     try {
-      const result = await LocalNotifications.getPending();
-      return result.notifications;
+      return await LocalNotifications.getPending();
     } catch (error) {
       console.error('Error getting pending notifications:', error);
-      return [];
+      return { notifications: [] };
     }
   }
 }

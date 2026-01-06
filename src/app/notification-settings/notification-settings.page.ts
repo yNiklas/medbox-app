@@ -65,7 +65,8 @@ export class NotificationSettingsPage implements OnInit {
   }
 
   async loadPendingNotifications() {
-    this.pendingNotifications = await this.notificationService.getPendingNotifications();
+    const result = await this.notificationService.getPendingNotifications();
+    this.pendingNotifications = result.notifications;
   }
 
   async cancelAllNotifications() {
@@ -75,8 +76,9 @@ export class NotificationSettingsPage implements OnInit {
 
   async sendTestNotification() {
     // Create a test compartment and box for demonstration
+    // Using negative IDs to avoid conflicts with real data
     const testCompartment = {
-      id: 999,
+      id: -999,
       name: 'Test Medication',
       intervals: undefined,
       remainingPills: 10,
@@ -85,7 +87,7 @@ export class NotificationSettingsPage implements OnInit {
     };
 
     const testBox = {
-      id: 888,
+      id: -888,
       mac: 'AA:BB:CC:DD:EE:FF',
       name: 'Test Box',
       status: {

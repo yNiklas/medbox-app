@@ -8,6 +8,9 @@ import { MedBox } from '../model/MedBox';
  * Service to monitor pill dispensing and trigger notifications
  * This service integrates with the backend to detect when pills are dispensed
  * and uses the NotificationService to send notifications to the user
+ * 
+ * NOTE: Currently uses polling which can impact battery life. For production,
+ * replace with WebSocket or push notifications as documented in NOTIFICATIONS.md
  */
 @Injectable({
   providedIn: 'root',
@@ -16,7 +19,11 @@ export class NotificationIntegrationService {
   private notificationService = inject(NotificationService);
   private backend = inject(Backend);
   private lastDispenseTimes: Map<number, number> = new Map();
-  private pollingInterval: any;
+  private pollingInterval: any = null;
+  
+  // Polling interval in milliseconds - can be configured
+  // For production, replace polling with WebSocket/push notifications
+  private readonly POLL_INTERVAL_MS = 30000; // 30 seconds
 
   constructor() {
     this.initializeMonitoring();
@@ -34,10 +41,11 @@ export class NotificationIntegrationService {
     this.updateLastDispenseTimes();
 
     // Poll every 30 seconds to check for changes
-    // In production, this should be replaced with WebSocket or Server-Sent Events
+    // NOTE: For production, replace with WebSocket or Server-Sent Events
+    // to reduce battery usage and network traffic
     this.pollingInterval = setInterval(() => {
       this.checkForDispenseEvents();
-    }, 30000); // 30 seconds
+    }, this.POLL_INTERVAL_MS);
   }
 
   /**
@@ -150,6 +158,7 @@ export class NotificationIntegrationService {
   stopMonitoring(): void {
     if (this.pollingInterval) {
       clearInterval(this.pollingInterval);
+      this.pollingInterval = null;
     }
   }
 }
