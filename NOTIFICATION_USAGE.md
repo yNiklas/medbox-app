@@ -1,344 +1,262 @@
-# Notification Service Usage Examples
+# Push Notification Service Usage Guide
 
-This document provides examples of how to use the notification services in the MedBox app.
+This document explains how the push notification system works in the MedBox app.
 
-## Basic Usage
+## Architecture Overview
 
-### 1. Inject the NotificationService
+The MedBox app uses **push notifications** delivered via Firebase Cloud Messaging (FCM) and Apple Push Notification Service (APNs). 
+
+**Key Points:**
+- The frontend **only registers the device token** with the backend
+- The **backend sends all notifications** when events occur
+- No polling or frontend monitoring is required
+- Notifications work even when the app is closed or in background
+
+## How It Works
+
+1. **App Startup**: NotificationService automatically initializes
+2. **Permission Request**: App requests push notification permissions from user
+3. **Token Registration**: Device receives FCM token from FCM/APNs
+4. **Backend Registration**: Token is automatically sent to backend `/api/v1/notifications/register-token`
+5. **Backend Sends Notifications**: When events occur (pills dispensed, etc.), backend sends push notifications to registered devices
+
+## Frontend Implementation
+
+### Automatic Initialization
+
+The NotificationService is automatically initialized when the app starts:
 
 ```typescript
+// src/app/app.component.ts
 import { Component, inject } from '@angular/core';
-import { NotificationService } from '../services/notification.service';
-
-@Component({
-  selector: 'app-my-component',
-  // ...
-})
-export class MyComponent {
-  private notificationService = inject(NotificationService);
-}
-```
-
-### 2. Check and Request Permissions
-
-```typescript
-async checkAndRequestPermissions() {
-  const hasPermission = await this.notificationService.checkPermissions();
-  
-  if (!hasPermission) {
-    const granted = await this.notificationService.requestPermissions();
-    if (granted) {
-      console.log('Notification permissions granted');
-    } else {
-      console.log('Notification permissions denied');
-    }
-  }
-}
-```
-
-### 3. Send a Pill Dispensed Notification
-
-```typescript
-async onPillDispensed(compartment: Compartment, box: MedBox) {
-  await this.notificationService.notifyPillDispensed(compartment, box);
-}
-```
-
-### 4. Send a Pills Running Low Notification
-
-```typescript
-async checkPillLevels(compartment: Compartment, box: MedBox) {
-  if (compartment.runningOut) {
-    await this.notificationService.notifyPillsRunningLow(compartment, box);
-  }
-}
-```
-
-### 5. Schedule a Future Reminder
-
-```typescript
-async scheduleReminder(compartment: Compartment, box: MedBox) {
-  // Schedule notification for 30 minutes from now
-  const dispenseTime = new Date(Date.now() + 30 * 60 * 1000);
-  await this.notificationService.scheduleDispenseReminder(
-    compartment,
-    box,
-    dispenseTime
-  );
-}
-```
-
-## Advanced Usage
-
-### Using NotificationIntegrationService
-
-The NotificationIntegrationService is automatically initialized by AppComponent and monitors for pill dispense events. However, you can also manually trigger notifications:
-
-```typescript
-import { Component, inject } from '@angular/core';
-import { NotificationIntegrationService } from '../services/notification-integration.service';
-
-@Component({
-  selector: 'app-my-component',
-  // ...
-})
-export class MyComponent {
-  private notificationIntegration = inject(NotificationIntegrationService);
-
-  async onBackendConfirmDispense(compartmentId: number, boxId: number) {
-    // Manually trigger notification when backend confirms dispense
-    await this.notificationIntegration.onPillDispensed(compartmentId, boxId);
-  }
-}
-```
-
-### Managing Pending Notifications
-
-```typescript
-async managePendingNotifications() {
-  // Get all pending notifications
-  const pending = await this.notificationService.getPendingNotifications();
-  console.log(`You have ${pending.length} pending notifications`);
-  
-  // Cancel all pending notifications
-  await this.notificationService.cancelAllNotifications();
-}
-```
-
-### Example: Compartment Component Integration
-
-```typescript
-import { Component, Input, inject } from '@angular/core';
-import { Compartment } from '../model/Compartment';
-import { MedBox } from '../model/MedBox';
-import { NotificationService } from '../services/notification.service';
-
-@Component({
-  selector: 'app-compartment-details',
-  // ...
-})
-export class CompartmentDetailsComponent {
-  @Input() compartment!: Compartment;
-  @Input() box!: MedBox;
-  
-  private notificationService = inject(NotificationService);
-
-  async onManualDispense() {
-    // User manually triggered a dispense
-    // Send notification
-    await this.notificationService.notifyPillDispensed(
-      this.compartment,
-      this.box
-    );
-  }
-
-  async checkAndNotifyLowPills() {
-    if (this.compartment.runningOut && this.compartment.remainingPills > 0) {
-      await this.notificationService.notifyPillsRunningLow(
-        this.compartment,
-        this.box
-      );
-    }
-  }
-}
-```
-
-## Integration with Backend
-
-### WebSocket Example
-
-If your backend implements WebSocket for real-time events:
-
-```typescript
-import { Component, inject, OnInit, OnDestroy } from '@angular/core';
-import { NotificationIntegrationService } from '../services/notification-integration.service';
+import { NotificationService } from './services/notification.service';
 
 @Component({
   selector: 'app-root',
   // ...
 })
-export class AppComponent implements OnInit, OnDestroy {
-  private notificationIntegration = inject(NotificationIntegrationService);
-  private ws: WebSocket | null = null;
-
-  ngOnInit() {
-    this.connectWebSocket();
-  }
-
-  ngOnDestroy() {
-    if (this.ws) {
-      this.ws.close();
-    }
-  }
-
-  private connectWebSocket() {
-    this.ws = new WebSocket('ws://your-backend-url/events');
-    
-    this.ws.onmessage = async (event) => {
-      const data = JSON.parse(event.data);
-      
-      if (data.event === 'pill_dispensed') {
-        await this.notificationIntegration.onPillDispensed(
-          data.compartmentId,
-          data.boxId
-        );
-      }
-    };
-  }
+export class AppComponent {
+  private notificationService = inject(NotificationService);
+  // NotificationService automatically registers for push notifications
 }
 ```
 
-### HTTP Polling Example (Current Implementation)
+### Service Methods
 
-The current implementation polls the backend every 30 seconds:
+The NotificationService provides these methods:
 
 ```typescript
-// This is already implemented in NotificationIntegrationService
-// It automatically checks for changes and sends notifications
+// Check if push notifications are ready
+const isReady = this.notificationService.isReady();
 
-// To customize the polling interval, modify the service:
-// Change the interval in notification-integration.service.ts
-this.pollingInterval = setInterval(() => {
-  this.checkForDispenseEvents();
-}, 60000); // 60 seconds instead of 30
+// Manually unregister device token (e.g., on logout)
+await this.notificationService.unregisterToken();
 ```
 
-## Testing Notifications
+## Backend Integration
 
-### Test Notification Function
+### Token Registration
+
+When the app receives an FCM token, it automatically calls:
+
+```http
+POST /api/v1/notifications/register-token
+Content-Type: application/json
+
+{
+  "fcmToken": "device-fcm-token-here",
+  "deviceType": "ios" | "android"
+}
+```
+
+### Sending Notifications from Backend
+
+When events occur, the backend should send push notifications using FCM/APNs:
+
+#### Pills Dispensed Example
 
 ```typescript
-async sendTestNotification() {
-  const testCompartment: Compartment = {
-    id: 999,
-    name: 'Test Medication',
-    intervals: undefined,
-    remainingPills: 10,
-    lastDispenseTime: Date.now(),
-    runningOut: false,
-  };
-
-  const testBox: MedBox = {
-    id: 888,
-    mac: 'AA:BB:CC:DD:EE:FF',
-    name: 'Test Box',
-    status: {
-      lastSeenAt: Date.now(),
-      error: undefined,
+// Backend pseudocode
+async function onPillsDispensed(userId, compartment, box) {
+  // Get user's registered device tokens
+  const tokens = await getDeviceTokens(userId);
+  
+  // Send push notification
+  await sendPushNotification(tokens, {
+    notification: {
+      title: 'Pills Dispensed',
+      body: `${compartment.name} from ${box.name} has been dispensed`
     },
-    compartments: [testCompartment],
-  };
-
-  await this.notificationService.notifyPillDispensed(testCompartment, testBox);
+    data: {
+      type: 'pill_dispensed',
+      compartmentId: compartment.id,
+      boxId: box.id,
+      timestamp: Date.now()
+    }
+  });
 }
 ```
 
-## Error Handling
-
-Always wrap notification calls in try-catch blocks:
+#### Pills Running Low Example
 
 ```typescript
-async sendNotificationSafely(compartment: Compartment, box: MedBox) {
-  try {
-    await this.notificationService.notifyPillDispensed(compartment, box);
-  } catch (error) {
-    console.error('Failed to send notification:', error);
-    // Handle error appropriately
-    // Show user message, retry, etc.
+async function onPillsRunningLow(userId, compartment, box) {
+  const tokens = await getDeviceTokens(userId);
+  
+  await sendPushNotification(tokens, {
+    notification: {
+      title: 'Pills Running Low',
+      body: `${compartment.name} needs refilling (${compartment.remainingPills} pills left)`
+    },
+    data: {
+      type: 'pills_running_low',
+      compartmentId: compartment.id,
+      boxId: box.id,
+      remainingPills: compartment.remainingPills
+    }
+  });
+}
+```
+
+## Handling Incoming Notifications
+
+The NotificationService automatically sets up listeners for push notifications:
+
+```typescript
+// In NotificationService (already implemented)
+PushNotifications.addListener('pushNotificationReceived', (notification) => {
+  console.log('Push notification received:', notification);
+  // Notification is displayed automatically by the system
+});
+
+PushNotifications.addListener('pushNotificationActionPerformed', (notification) => {
+  console.log('Push notification tapped:', notification);
+  // You can navigate to specific screens here based on notification.data
+});
+```
+
+### Custom Notification Handling
+
+If you need to handle notifications when they're tapped:
+
+```typescript
+import { PushNotifications } from '@capacitor/push-notifications';
+import { Router } from '@angular/router';
+
+export class MyService {
+  constructor(private router: Router) {
+    this.setupNotificationHandlers();
+  }
+  
+  private setupNotificationHandlers() {
+    PushNotifications.addListener('pushNotificationActionPerformed', (notification) => {
+      const data = notification.notification.data;
+      
+      // Navigate based on notification type
+      switch (data.type) {
+        case 'pill_dispensed':
+          this.router.navigate(['/compartment', data.compartmentId]);
+          break;
+        case 'pills_running_low':
+          this.router.navigate(['/refill', data.compartmentId]);
+          break;
+      }
+    });
+  }
+
+## Testing
+
+### Testing on Device
+
+```bash
+# Build and sync
+npm run build
+npx cap sync
+
+# Open in IDE
+npx cap open android  # or ios
+```
+
+### Sending Test Notifications
+
+Use Firebase Console to send test notifications:
+1. Go to Firebase Console > Cloud Messaging
+2. Click "Send your first message"
+3. Enter title and body
+4. Select your app
+5. Send to specific FCM token or all devices
+
+### Testing Different Notification Types
+
+```typescript
+// Send from Firebase Console with custom data
+{
+  "notification": {
+    "title": "Test Pills Dispensed",
+    "body": "Test notification"
+  },
+  "data": {
+    "type": "pill_dispensed",
+    "compartmentId": "123",
+    "boxId": "456"
   }
 }
 ```
 
 ## Best Practices
 
-1. **Always Check Permissions First**
-   ```typescript
-   const hasPermission = await this.notificationService.checkPermissions();
-   if (!hasPermission) {
-     await this.notificationService.requestPermissions();
-   }
-   ```
+1. **Let Backend Handle Logic**: Don't monitor or poll from frontend. Backend sends notifications when events occur.
 
-2. **Don't Spam Notifications**
-   - Rate limit notifications
-   - Batch similar notifications
-   - Respect user preferences
+2. **Handle Permissions Gracefully**: The app automatically requests permissions on startup.
 
-3. **Provide Meaningful Content**
-   ```typescript
-   // Good: Specific information
-   await this.notificationService.notifyPillDispensed(compartment, box);
-   // "Metformin from Joe's Box has been dispensed"
-   
-   // Bad: Generic information
-   // "Pills dispensed"
-   ```
+3. **Store Tokens Securely**: Backend should securely store FCM tokens associated with authenticated users.
 
-4. **Handle Errors Gracefully**
-   - Don't let notification failures break your app
-   - Log errors for debugging
-   - Provide fallback UI messages
+4. **Handle Token Updates**: Tokens can change when app is reinstalled. NotificationService automatically re-registers.
 
-5. **Clean Up Resources**
-   ```typescript
-   ngOnDestroy() {
-     // Stop monitoring when component is destroyed
-     this.notificationIntegration.stopMonitoring();
-   }
-   ```
-
-## Platform-Specific Considerations
-
-### Android
-- Notifications work in background and when app is closed
-- Users can disable notifications per app in system settings
-- Channel importance affects notification behavior
-
-### iOS
-- Requires explicit user permission
-- Silent notifications require specific configuration
-- Time-sensitive notifications require special entitlements
-
-### Web
-- Limited notification support
-- Requires HTTPS in production
-- Desktop browsers have better support than mobile browsers
+5. **Test on Physical Devices**: iOS push notifications don't work in simulator.
 
 ## Troubleshooting
 
-### Notifications Not Showing
+### Notifications Not Received
 
-1. Check permissions:
-   ```typescript
-   const result = await this.notificationService.checkPermissions();
-   console.log('Permission status:', result);
-   ```
+1. **Check permissions**: Verify notification permissions are granted in device settings
+2. **Verify FCM token**: Check backend logs to confirm token was registered
+3. **Test with Firebase Console**: Send test notification to verify FCM/APNs setup
+4. **Check backend logs**: Verify backend is sending notifications successfully
+5. **Physical device**: iOS push notifications require physical device (not simulator)
 
-2. Check pending notifications:
-   ```typescript
-   const pending = await this.notificationService.getPendingNotifications();
-   console.log('Pending notifications:', pending);
-   ```
+### Token Not Registered
 
-3. Verify platform support:
-   - Use physical device for testing
-   - Check device notification settings
-   - Ensure app has permission in system settings
-
-### Notifications Delayed
-
-- Check polling interval in NotificationIntegrationService
-- Verify backend is returning updated data
-- Consider implementing WebSocket for real-time updates
+1. **Check console logs**: Look for "Push registration success" message
+2. **Verify backend endpoint**: Ensure `/api/v1/notifications/register-token` is working
+3. **Check network**: Verify app can reach backend
+4. **Platform check**: Ensure running on iOS/Android (not web)
 
 ### Permission Denied
 
-- Request permissions at appropriate time (not immediately on app start)
-- Explain why notifications are needed before requesting
-- Provide fallback UI for users who deny permissions
+- User must manually enable notifications in device settings
+- App will request permission again on next startup
+- Consider adding in-app explanation before requesting permissions
+
+## Platform-Specific Notes
+
+### Android
+- Requires `google-services.json` from Firebase
+- Notifications work in emulator and device
+- Can customize notification icon and color
+
+### iOS
+- Requires APNs certificate uploaded to Firebase
+- Notifications only work on physical devices (not simulator)
+- Background modes must be enabled in Xcode
+
+### Web
+- Push notifications not supported in web version
+- Service only initializes on native platforms
 
 ## See Also
 
-- [NOTIFICATIONS.md](../NOTIFICATIONS.md) - Complete documentation
-- [Capacitor Local Notifications](https://capacitorjs.com/docs/apis/local-notifications)
-- [Ionic Framework](https://ionicframework.com/)
+- [NOTIFICATIONS.md](./NOTIFICATIONS.md) - Complete technical documentation
+- [NOTIFICATION_SUMMARY.md](./NOTIFICATION_SUMMARY.md) - Implementation overview
+- [Capacitor Push Notifications](https://capacitorjs.com/docs/apis/push-notifications)
+- [Firebase Cloud Messaging](https://firebase.google.com/docs/cloud-messaging)

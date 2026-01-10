@@ -1,6 +1,6 @@
 import { Component, inject } from '@angular/core';
 import {IonApp, IonRouterOutlet} from '@ionic/angular/standalone';
-import { NotificationIntegrationService } from './services/notification-integration.service';
+import { NotificationService } from './services/notification.service';
 
 @Component({
   selector: 'app-root',
@@ -8,9 +8,9 @@ import { NotificationIntegrationService } from './services/notification-integrat
   imports: [IonApp, IonRouterOutlet],
 })
 export class AppComponent {
-  private notificationIntegration = inject(NotificationIntegrationService);
+  private notificationService = inject(NotificationService);
 
   constructor() {
-    // Initialize notification integration on app startup
+    // NotificationService is automatically initialized to register for push notifications
   }
 }

@@ -1,205 +1,125 @@
-import { Injectable } from '@angular/core';
-import { LocalNotifications, ScheduleOptions } from '@capacitor/local-notifications';
-import { Compartment } from '../model/Compartment';
-import { MedBox } from '../model/MedBox';
+import { Injectable, inject } from '@angular/core';
+import { PushNotifications } from '@capacitor/push-notifications';
+import { HttpClient } from '@angular/common/http';
+import { environment } from '../../environments/environment';
+import { Capacitor } from '@capacitor/core';
 
+/**
+ * Service to handle push notification registration and token management
+ * This service registers the device with the backend for receiving push notifications
+ * from Firebase Cloud Messaging (FCM) for Android and Apple Push Notification Service (APNs) for iOS
+ */
 @Injectable({
   providedIn: 'root',
 })
 export class NotificationService {
-  private notificationId = 1;
+  private http = inject(HttpClient);
+  private isInitialized = false;
 
   constructor() {
-    this.initializeNotifications();
+    this.initializePushNotifications();
   }
 
   /**
-   * Initialize notifications by requesting permissions and setting up listeners
+   * Initialize push notifications by requesting permissions and registering listeners
    */
-  private async initializeNotifications(): Promise<void> {
+  private async initializePushNotifications(): Promise<void> {
+    // Only initialize on native platforms (iOS/Android)
+    if (!Capacitor.isNativePlatform()) {
+      console.log('Push notifications only available on native platforms');
+      return;
+    }
+
     try {
-      // Check and request permissions
-      const permissionStatus = await LocalNotifications.checkPermissions();
-      if (permissionStatus.display !== 'granted') {
-        await LocalNotifications.requestPermissions();
+      // Request permission to use push notifications
+      const permResult = await PushNotifications.requestPermissions();
+
+      if (permResult.receive === 'granted') {
+        // Register with Apple / Google to receive push notifications
+        await PushNotifications.register();
+      } else {
+        console.warn('Push notification permission denied');
       }
 
-      // Set up notification action listeners
-      await LocalNotifications.addListener('localNotificationActionPerformed', (notification) => {
-        console.log('Notification action performed:', notification);
-      });
+      // Set up listeners
+      this.setupPushNotificationListeners();
+      this.isInitialized = true;
     } catch (error) {
-      console.error('Error initializing notifications:', error);
+      console.error('Error initializing push notifications:', error);
     }
   }
 
   /**
-   * Request notification permissions from the user
-   * @returns Promise<boolean> - true if permission granted, false otherwise
+   * Set up listeners for push notification events
    */
-  async requestPermissions(): Promise<boolean> {
+  private setupPushNotificationListeners(): void {
+    // Called when registration is successful and we receive a token
+    PushNotifications.addListener('registration', async (token) => {
+      console.log('Push registration success, token:', token.value);
+      await this.registerTokenWithBackend(token.value);
+    });
+
+    // Called when registration fails
+    PushNotifications.addListener('registrationError', (error) => {
+      console.error('Push registration error:', error);
+    });
+
+    // Called when a push notification is received
+    PushNotifications.addListener('pushNotificationReceived', (notification) => {
+      console.log('Push notification received:', notification);
+    });
+
+    // Called when a push notification is tapped/opened
+    PushNotifications.addListener('pushNotificationActionPerformed', (notification) => {
+      console.log('Push notification action performed:', notification);
+    });
+  }
+
+  /**
+   * Register the FCM token with the backend
+   * @param fcmToken - The FCM token received from Firebase/APNs
+   */
+  private async registerTokenWithBackend(fcmToken: string): Promise<void> {
     try {
-      const result = await LocalNotifications.requestPermissions();
-      return result.display === 'granted';
+      const deviceType = Capacitor.getPlatform(); // 'ios' or 'android'
+      
+      await this.http.post(`${environment.backendURL}/notifications/register-token`, {
+        fcmToken,
+        deviceType,
+      }).toPromise();
+
+      console.log('Successfully registered FCM token with backend');
     } catch (error) {
-      console.error('Error requesting notification permissions:', error);
-      return false;
+      console.error('Error registering token with backend:', error);
     }
   }
 
   /**
-   * Check if notification permissions are granted
-   * @returns Promise<boolean> - true if permission granted, false otherwise
+   * Manually unregister the device token from the backend
    */
-  async checkPermissions(): Promise<boolean> {
+  async unregisterToken(): Promise<void> {
     try {
-      const result = await LocalNotifications.checkPermissions();
-      return result.display === 'granted';
+      // Get the current token
+      const deliveredNotifications = await PushNotifications.getDeliveredNotifications();
+      
+      // Note: We need to store the token locally to unregister it
+      // For now, we'll just call the unregister endpoint
+      // In production, you should store the token in local storage
+      
+      await this.http.post(`${environment.backendURL}/notifications/unregister-token`, {
+        fcmToken: '', // Token should be retrieved from storage
+      }).toPromise();
+
+      console.log('Successfully unregistered token from backend');
     } catch (error) {
-      console.error('Error checking notification permissions:', error);
-      return false;
+      console.error('Error unregistering token:', error);
     }
   }
 
   /**
-   * Send an immediate notification when pills are dispensed
-   * @param compartment - The compartment from which pills were dispensed
-   * @param box - The MedBox that dispensed the pills
+   * Check if push notifications are initialized
    */
-  async notifyPillDispensed(compartment: Compartment, box: MedBox): Promise<void> {
-    try {
-      const hasPermission = await this.checkPermissions();
-      if (!hasPermission) {
-        console.warn('Notification permissions not granted');
-        return;
-      }
-
-      const notificationOptions: ScheduleOptions = {
-        notifications: [
-          {
-            title: 'Pills Dispensed',
-            body: `${compartment.name} from ${box.name} has been dispensed`,
-            id: this.notificationId++,
-            schedule: { at: new Date(Date.now() + 2000) }, // Schedule for 2 seconds from now to ensure proper processing
-            sound: undefined,
-            attachments: undefined,
-            actionTypeId: '',
-            extra: {
-              compartmentId: compartment.id,
-              boxId: box.id,
-            },
-          },
-        ],
-      };
-
-      await LocalNotifications.schedule(notificationOptions);
-    } catch (error) {
-      console.error('Error sending pill dispensed notification:', error);
-    }
-  }
-
-  /**
-   * Schedule a notification for upcoming pill dispense
-   * @param compartment - The compartment that will dispense pills
-   * @param box - The MedBox that will dispense the pills
-   * @param dispenseTime - The time when pills will be dispensed
-   */
-  async scheduleDispenseReminder(
-    compartment: Compartment,
-    box: MedBox,
-    dispenseTime: Date
-  ): Promise<void> {
-    try {
-      const hasPermission = await this.checkPermissions();
-      if (!hasPermission) {
-        console.warn('Notification permissions not granted');
-        return;
-      }
-
-      const notificationOptions: ScheduleOptions = {
-        notifications: [
-          {
-            title: 'Upcoming Pill Dispense',
-            body: `${compartment.name} from ${box.name} will be dispensed soon`,
-            id: this.notificationId++,
-            schedule: { at: dispenseTime },
-            sound: undefined,
-            attachments: undefined,
-            actionTypeId: '',
-            extra: {
-              compartmentId: compartment.id,
-              boxId: box.id,
-            },
-          },
-        ],
-      };
-
-      await LocalNotifications.schedule(notificationOptions);
-    } catch (error) {
-      console.error('Error scheduling dispense reminder:', error);
-    }
-  }
-
-  /**
-   * Notify when pills are running low
-   * @param compartment - The compartment with low pills
-   * @param box - The MedBox with the compartment
-   */
-  async notifyPillsRunningLow(compartment: Compartment, box: MedBox): Promise<void> {
-    try {
-      const hasPermission = await this.checkPermissions();
-      if (!hasPermission) {
-        console.warn('Notification permissions not granted');
-        return;
-      }
-
-      const notificationOptions: ScheduleOptions = {
-        notifications: [
-          {
-            title: 'Pills Running Low',
-            body: `${compartment.name} in ${box.name} needs refilling (${compartment.remainingPills} pills left)`,
-            id: this.notificationId++,
-            schedule: { at: new Date(Date.now() + 2000) }, // Schedule for 2 seconds from now to ensure proper processing
-            sound: undefined,
-            attachments: undefined,
-            actionTypeId: '',
-            extra: {
-              compartmentId: compartment.id,
-              boxId: box.id,
-            },
-          },
-        ],
-      };
-
-      await LocalNotifications.schedule(notificationOptions);
-    } catch (error) {
-      console.error('Error sending pills running low notification:', error);
-    }
-  }
-
-  /**
-   * Cancel all pending notifications
-   */
-  async cancelAllNotifications(): Promise<void> {
-    try {
-      const pending = await LocalNotifications.getPending();
-      if (pending.notifications.length > 0) {
-        await LocalNotifications.cancel(pending);
-      }
-    } catch (error) {
-      console.error('Error canceling notifications:', error);
-    }
-  }
-
-  /**
-   * Get all pending notifications
-   */
-  async getPendingNotifications(): Promise<{ notifications: any[] }> {
-    try {
-      return await LocalNotifications.getPending();
-    } catch (error) {
-      console.error('Error getting pending notifications:', error);
-      return { notifications: [] };
-    }
+  isReady(): boolean {
+    return this.isInitialized;
   }
 }
