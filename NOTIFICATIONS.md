@@ -76,15 +76,15 @@ Implement push notifications using:
 
 **Backend endpoints needed for push notifications:**
 ```
-POST /api/v1/notifications/register
+POST /api/v1/notifications/register-token
 {
-  "deviceToken": "string",
-  "platform": "ios" | "android"
+  "fcmToken": "string",
+  "deviceType": "string"
 }
 
-POST /api/v1/notifications/unregister
+POST /api/v1/notifications/unregister-token
 {
-  "deviceToken": "string"
+  "fcmToken": "string"
 }
 ```
 

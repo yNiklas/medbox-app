@@ -30,14 +30,7 @@ Integrates notifications with the backend:
 - ✅ Updated `capacitor.config.ts` with notification plugin settings
 - ✅ Configured notification icons and colors
 
-### 4. Example Component
-- ✅ `NotificationSettingsPage` - Demonstrates all notification features
-  - Permission request UI
-  - Test notification functionality
-  - Pending notification management
-  - Notification preference toggles (UI only, backend integration pending)
-
-### 5. Documentation
+### 4. Documentation
 
 #### NOTIFICATIONS.md
 Comprehensive technical documentation covering:
@@ -67,10 +60,11 @@ Developer guide with practical examples:
 
 2. **API Endpoints**
    ```
-   POST /api/v1/notifications/register         - Register device for push
-   GET  /api/v1/users/notification-preferences - Get user preferences
-   PUT  /api/v1/users/notification-preferences - Update preferences
-   GET  /api/v1/notifications/history          - Get notification history
+   POST /api/v1/notifications/register-token      - Register device for push (fcmToken, deviceType)
+   POST /api/v1/notifications/unregister-token    - Unregister device token
+   GET  /api/v1/users/notification-preferences    - Get user preferences
+   PUT  /api/v1/users/notification-preferences    - Update preferences
+   GET  /api/v1/notifications/history             - Get notification history
    ```
 
 3. **Event Triggers**
@@ -118,10 +112,9 @@ npx cap open android  # or ios
 
 ### Test Scenarios
 1. ✅ App launches and requests notification permission
-2. ✅ Test notification can be sent from settings page
-3. ✅ Notifications display when pills are dispensed
-4. ✅ Low pill notifications appear when running low
-5. ⚠️ Background notifications (requires push setup)
+2. ✅ Notifications display when pills are dispensed
+3. ✅ Low pill notifications appear when running low
+4. ⚠️ Background notifications (requires push setup)
 
 ## Current Limitations
 
@@ -153,8 +146,6 @@ npx cap open android  # or ios
 ### New Files
 - `src/app/services/notification.service.ts` - Core notification service
 - `src/app/services/notification-integration.service.ts` - Backend integration
-- `src/app/notification-settings/notification-settings.page.ts` - Example component
-- `src/app/notification-settings/notification-settings.page.html` - Example UI
 - `NOTIFICATIONS.md` - Technical documentation
 - `NOTIFICATION_USAGE.md` - Developer guide
 - `NOTIFICATION_SUMMARY.md` - This file
