@@ -22,7 +22,7 @@
           <ion-label>{{ compartment.potentialErrorMessage }}</ion-label>
         </ion-chip>
       }
-      @if (compartment.runningOut) {
+      @if (compartment.intervals && compartment.intervals.length > 0 && compartment.runningOut) {
         <br>
         <ion-chip color="warning">
           <ion-icon name="warning-outline"></ion-icon>
@@ -85,18 +85,18 @@
         <ion-icon name="add">add</ion-icon>
       </ion-fab-button>
     </ion-fab>
+
+    <ion-action-sheet
+      (didDismiss)="handleCompartmentEvent($event)"
+      trigger="open-compartment-options-sheet"
+      header="Compartment Actions"
+      [buttons]="compartmentOptionsSheetActions">
+    </ion-action-sheet>
   } @else {
     <div class="container">
       <ion-spinner></ion-spinner>
     </div>
   }
-
-  <ion-action-sheet
-    (didDismiss)="handleCompartmentEvent($event)"
-    trigger="open-compartment-options-sheet"
-    header="Compartment Actions"
-    [buttons]="compartmentOptionsSheetActions">
-  </ion-action-sheet>
 
   @for (interval of compartment?.intervals; track interval.id) {
     <ion-action-sheet

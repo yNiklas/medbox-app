@@ -11,13 +11,13 @@ export interface Compartment {
 export interface DispenseInterval {
   id: number;
   interval: number;
-  start: number;
+  startTime: number;
   pillsToDispense: number;
 }
 
 export function nextDispenseOfInterval(interval: DispenseInterval): Date {
   const now = new Date().getTime();
-  const nextTime = interval.start + interval.interval*(Math.floor((now-interval.start)/interval.interval)+1);
+  const nextTime = interval.startTime + interval.interval*(Math.floor((now-interval.startTime)/interval.interval)+1);
   return new Date(nextTime);
 }
 

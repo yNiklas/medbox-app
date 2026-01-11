@@ -168,7 +168,7 @@ export class InspectCompartmentPage  {
       }
 
       this.editIntervalPills = interval.pillsToDispense;
-      this.editIntervalStartTime = new Date(interval.start).toISOString();
+      this.editIntervalStartTime = new Date(interval.startTime).toISOString();
     }
     this.editIntervalModal.present();
   }

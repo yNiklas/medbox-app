@@ -70,7 +70,7 @@
                           <ion-label>{{ compartment.potentialErrorMessage }}</ion-label>
                         </ion-chip>
                       }
-                      @if (compartment.runningOut) {
+                      @if (compartment.intervals && compartment.intervals.length > 0 && compartment.runningOut) {
                         <br>
                         <ion-chip color="warning">
                           <ion-icon name="warning-outline"></ion-icon>
@@ -93,18 +93,18 @@
         }
       }
     </div>
+
+    <ion-action-sheet
+      (didDismiss)="handleStackEvent($event)"
+      trigger="open-stack-options-sheet"
+      header="Stack Actions"
+      [buttons]="stackOptionsSheetActions">
+    </ion-action-sheet>
   } @else {
     <div class="container">
       <ion-spinner name="crescent"></ion-spinner>
     </div>
   }
-
-  <ion-action-sheet
-    (didDismiss)="handleStackEvent($event)"
-    trigger="open-stack-options-sheet"
-    header="Stack Actions"
-    [buttons]="stackOptionsSheetActions">
-  </ion-action-sheet>
 
   <!-- Modal for the box name change -->
   <ion-modal #renameBoxModal>
