@@ -54,23 +54,23 @@ export class NotificationService {
    */
   private setupPushNotificationListeners(): void {
     // Called when registration is successful and we receive a token
-    PushNotifications.addListener('registration', async (token) => {
+    PushNotifications.addListener('registration', async (token: any) => {
       console.log('Push registration success, token:', token.value);
       await this.registerTokenWithBackend(token.value);
     });
 
     // Called when registration fails
-    PushNotifications.addListener('registrationError', (error) => {
+    PushNotifications.addListener('registrationError', (error: any) => {
       console.error('Push registration error:', error);
     });
 
     // Called when a push notification is received
-    PushNotifications.addListener('pushNotificationReceived', (notification) => {
+    PushNotifications.addListener('pushNotificationReceived', (notification: any) => {
       console.log('Push notification received:', notification);
     });
 
     // Called when a push notification is tapped/opened
-    PushNotifications.addListener('pushNotificationActionPerformed', (notification) => {
+    PushNotifications.addListener('pushNotificationActionPerformed', (notification: any) => {
       console.log('Push notification action performed:', notification);
     });
   }
@@ -82,7 +82,7 @@ export class NotificationService {
   private async registerTokenWithBackend(fcmToken: string): Promise<void> {
     try {
       const deviceType = Capacitor.getPlatform(); // 'ios' or 'android'
-      
+
       await this.http.post(`${environment.backendURL}/notifications/register-token`, {
         fcmToken,
         deviceType,
@@ -101,11 +101,11 @@ export class NotificationService {
     try {
       // Get the current token
       const deliveredNotifications = await PushNotifications.getDeliveredNotifications();
-      
+
       // Note: We need to store the token locally to unregister it
       // For now, we'll just call the unregister endpoint
       // In production, you should store the token in local storage
-      
+
       await this.http.post(`${environment.backendURL}/notifications/unregister-token`, {
         fcmToken: '', // Token should be retrieved from storage
       }).toPromise();
