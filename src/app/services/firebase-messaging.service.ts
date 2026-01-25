@@ -30,10 +30,10 @@ export class FirebaseMessagingService {
 
       // Initialize Firebase
       const app = initializeApp(environment.firebase);
-      
+
       // Get messaging instance
       this.messaging = getMessaging(app);
-      
+
       // Listen for foreground messages
       this.setupForegroundListener();
     } catch (error) {
@@ -46,7 +46,7 @@ export class FirebaseMessagingService {
    */
   private isFirebaseConfigValid(): boolean {
     const config = environment.firebase;
-    
+
     // Check if configuration exists and has actual values (not placeholders)
     return !!(
       config &&
@@ -73,15 +73,15 @@ export class FirebaseMessagingService {
     try {
       // Request notification permission
       const permission = await Notification.requestPermission();
-      
+
       if (permission === 'granted') {
         console.log('Notification permission granted.');
-        
+
         // Get FCM token
         const token = await getToken(this.messaging, {
           vapidKey: environment.firebase.vapidKey
         });
-        
+
         if (token) {
           console.log('FCM Token:', token);
           return token;
@@ -108,9 +108,9 @@ export class FirebaseMessagingService {
       return;
     }
 
-    onMessage(this.messaging, (payload) => {
+    onMessage(this.messaging, (payload: any) => {
       console.log('Message received in foreground:', payload);
-      
+
       // Display notification manually when app is in foreground
       if (payload.notification) {
         this.showNotification(
