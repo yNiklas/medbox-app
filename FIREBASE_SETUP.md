@@ -53,11 +53,7 @@ Update the Firebase configuration in `src/firebase-messaging-sw.js`:
 
 Replace the placeholder values in the `firebase.initializeApp()` call with your actual Firebase configuration (same values as step 2, but without the `vapidKey`).
 
-### 5. Update Web Manifest (Optional)
-
-In `src/manifest.webmanifest`, you can update the `gcm_sender_id` with your Firebase messaging sender ID, but this is optional as FCM now uses VAPID keys.
-
-## Testing
+### 5. Build and Test
 
 1. Build the application:
    ```bash

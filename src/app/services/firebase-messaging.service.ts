@@ -22,6 +22,12 @@ export class FirebaseMessagingService {
    */
   private initializeFirebase(): void {
     try {
+      // Validate Firebase configuration
+      if (!this.isFirebaseConfigValid()) {
+        console.warn('Firebase configuration not set. Please configure Firebase in environment files.');
+        return;
+      }
+
       // Initialize Firebase
       const app = initializeApp(environment.firebase);
       
@@ -33,6 +39,25 @@ export class FirebaseMessagingService {
     } catch (error) {
       console.error('Error initializing Firebase:', error);
     }
+  }
+
+  /**
+   * Validate that Firebase configuration has been set with actual values
+   */
+  private isFirebaseConfigValid(): boolean {
+    const config = environment.firebase;
+    
+    // Check if configuration exists and has actual values (not placeholders)
+    return !!(
+      config &&
+      config.apiKey &&
+      config.projectId &&
+      config.messagingSenderId &&
+      config.appId &&
+      config.vapidKey &&
+      !config.apiKey.startsWith('YOUR_') &&
+      !config.projectId.startsWith('YOUR_')
+    );
   }
 
   /**
