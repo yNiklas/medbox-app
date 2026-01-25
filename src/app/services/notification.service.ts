@@ -89,7 +89,24 @@ export class NotificationService {
   private async registerServiceWorker(): Promise<void> {
     if ('serviceWorker' in navigator) {
       try {
-        const registration = await navigator.serviceWorker.register('/firebase-messaging-sw.js');
+        // Check for existing registrations
+        const existingRegistrations = await navigator.serviceWorker.getRegistrations();
+        const firebaseSwUrl = '/firebase-messaging-sw.js';
+        
+        // Check if our service worker is already registered
+        const existingRegistration = existingRegistrations.find(
+          reg => reg.active?.scriptURL.includes('firebase-messaging-sw.js')
+        );
+
+        if (existingRegistration) {
+          console.log('Firebase messaging service worker already registered:', existingRegistration);
+          // Update existing registration
+          await existingRegistration.update();
+          return;
+        }
+
+        // Register new service worker
+        const registration = await navigator.serviceWorker.register(firebaseSwUrl);
         console.log('Service Worker registered:', registration);
       } catch (error) {
         console.error('Service Worker registration failed:', error);

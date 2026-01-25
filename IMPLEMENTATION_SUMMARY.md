@@ -6,7 +6,7 @@ This implementation adds full PWA (Progressive Web App) web push notification su
 ## What Was Implemented
 
 ### 1. Firebase Integration
-- **Package Added**: `firebase` (v11.2.0) - No security vulnerabilities detected
+- **Package Added**: `firebase` (v12.8.0) - No security vulnerabilities detected
 - **New Service**: `FirebaseMessagingService` - Handles FCM initialization, token management, and message handling for web platform
 - **Configuration Validation**: Added validation to ensure Firebase configuration is properly set before initialization
 
@@ -157,7 +157,7 @@ The backend should:
 5. **Permission-Based**: Requires explicit user permission for notifications
 
 ### Security Scan Results:
-- ✅ No vulnerabilities in Firebase dependency (v11.2.0)
+- ✅ No vulnerabilities in Firebase dependency (v12.8.0)
 - ✅ CodeQL scan: 0 alerts
 - ✅ No secrets committed to repository
 
