@@ -1,0 +1,18 @@
+{
+  "name": "MedBox App",
+  "short_name": "MedBox",
+  "description": "MedBox medication management application",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#3880ff",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "assets/icon/favicon.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
