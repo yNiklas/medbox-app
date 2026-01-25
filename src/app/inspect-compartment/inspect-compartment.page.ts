@@ -63,7 +63,7 @@ export class InspectCompartmentPage  {
   editIntervalValue: number = 1;
   editIntervalUnit: string = 'days';
   editIntervalPills: number = 1;
-  editIntervalStartTime: string = new Date().toISOString();
+  editIntervalStartTime: string = toIsoWithTimezone(new Date().getTime(), "Europe/Berlin");
   currentIntervalId: number | undefined = undefined;
   refillPillsToAdd: number = 1;
 
@@ -168,7 +168,7 @@ export class InspectCompartmentPage  {
       }
 
       this.editIntervalPills = interval.pillsToDispense;
-      this.editIntervalStartTime = new Date(interval.startTime).toISOString();
+      this.editIntervalStartTime = toIsoWithTimezone(interval.startTime, "Europe/Berlin");
     }
     this.editIntervalModal.present();
   }
@@ -297,4 +297,10 @@ export class InspectCompartmentPage  {
   protected readonly nextDispenseOfCompartment = nextDispenseOfCompartment;
   protected readonly nextDispenseIntervalOfCompartment = nextDispenseIntervalOfCompartment;
   protected readonly formatDispenseInterval = formatDispenseInterval;
+}
+
+function toIsoWithTimezone(utcMillis: number, tz: string) {
+  return new Date(utcMillis)
+    .toLocaleString('sv-SE', { timeZone: tz })
+    .replace(' ', 'T') + ':00';
 }

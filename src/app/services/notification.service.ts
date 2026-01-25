@@ -70,10 +70,10 @@ export class NotificationService {
     try {
       // Register service worker
       await this.registerServiceWorker();
-      
+
       // Request permission and get FCM token
       const token = await this.firebaseMessaging.requestPermissionAndGetToken();
-      
+
       if (token) {
         await this.registerTokenWithBackend(token, 'web');
         this.isInitialized = true;
@@ -92,7 +92,7 @@ export class NotificationService {
         // Check for existing registrations
         const existingRegistrations = await navigator.serviceWorker.getRegistrations();
         const firebaseSwUrl = '/firebase-messaging-sw.js';
-        
+
         // Check if our service worker is already registered
         const existingRegistration = existingRegistrations.find(
           reg => reg.active?.scriptURL.includes('firebase-messaging-sw.js')
