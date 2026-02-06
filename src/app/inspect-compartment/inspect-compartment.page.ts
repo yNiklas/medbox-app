@@ -147,6 +147,7 @@ export class InspectCompartmentPage  {
   }
 
   openEditIntervalModal(intervalId: number) {
+    console.log("Opening edit modal for interval ID:", intervalId);
     this.editIntervalModalEditMode = true;
     this.currentIntervalId = intervalId;
     const interval = this.compartment?.intervals?.find(i => i.id === intervalId);
@@ -179,7 +180,7 @@ export class InspectCompartmentPage  {
     this.editIntervalValue = 1;
     this.editIntervalUnit = 'days';
     this.editIntervalPills = 1;
-    this.editIntervalStartTime = new Date().toISOString();
+    this.editIntervalStartTime = toIsoWithTimezone(new Date().getTime(), "Europe/Berlin");
     this.editIntervalModal.present();
   }
 
