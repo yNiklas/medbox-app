@@ -302,5 +302,5 @@ export class InspectCompartmentPage  {
 function toIsoWithTimezone(utcMillis: number, tz: string) {
   return new Date(utcMillis)
     .toLocaleString('sv-SE', { timeZone: tz })
-    .replace(' ', 'T') + ':00';
+    .replace(' ', 'T');
 }
