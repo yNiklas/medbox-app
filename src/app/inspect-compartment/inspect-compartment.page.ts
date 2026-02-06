@@ -300,7 +300,9 @@ export class InspectCompartmentPage  {
 }
 
 function toIsoWithTimezone(utcMillis: number, tz: string) {
-  return new Date(utcMillis)
+  const s = new Date(utcMillis)
     .toLocaleString('sv-SE', { timeZone: tz })
     .replace(' ', 'T');
+  console.log("transformed time:", s);
+  return s;
 }
