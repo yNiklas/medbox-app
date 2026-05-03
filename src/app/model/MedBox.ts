@@ -5,6 +5,8 @@ export interface MedBox {
   id: number;
   mac: string;
   name: string;
+  location: string;
+  robot: string;
   status: MedBoxStatus;
   compartments: Compartment[]; // One schedule per compartment
 }

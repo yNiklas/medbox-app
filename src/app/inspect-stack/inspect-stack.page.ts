@@ -9,7 +9,7 @@ import {
   IonCardHeader, IonCardSubtitle, IonCardTitle,
   IonChip,
   IonContent,
-  IonHeader, IonIcon, IonInput, IonItem, IonLabel, IonList, IonModal, IonRefresher, IonRefresherContent,
+  IonHeader, IonIcon, IonInput, IonItem, IonLabel, IonList, IonModal, IonRefresher, IonRefresherContent, IonSelect, IonSelectOption,
   IonSpinner, IonThumbnail,
   IonTitle,
   IonToolbar
@@ -30,7 +30,7 @@ import {alertCircleOutline, ellipsisVerticalOutline, warningOutline} from "ionic
   templateUrl: './inspect-stack.page.html',
   styleUrls: ['./inspect-stack.page.scss'],
   standalone: true,
-  imports: [IonContent, IonHeader, IonTitle, IonToolbar, CommonModule, FormsModule, IonChip, IonSpinner, IonCard, IonCardHeader, IonCardTitle, IonCardSubtitle, IonCardContent, DateCountdownPipe, IonList, IonItem, IonLabel, IonThumbnail, IonRefresher, IonRefresherContent, IonIcon, IonButton, IonActionSheet, IonModal, IonButtons, IonInput]
+  imports: [IonContent, IonHeader, IonTitle, IonToolbar, CommonModule, FormsModule, IonChip, IonSpinner, IonCard, IonCardHeader, IonCardTitle, IonCardSubtitle, IonCardContent, DateCountdownPipe, IonList, IonItem, IonLabel, IonThumbnail, IonRefresher, IonRefresherContent, IonIcon, IonButton, IonActionSheet, IonModal, IonButtons, IonInput, IonSelect, IonSelectOption]
 })
 export class InspectStackPage  {
   @ViewChild('renameBoxModal') renameBoxModal!: IonModal;
@@ -38,6 +38,8 @@ export class InspectStackPage  {
   @ViewChild('renameStackModal') renameStackModal!: IonModal;
   @ViewChild('deleteStackModal') deleteStackModal!: IonModal;
   @ViewChild('onboardDanglingBoxModal') onboardDanglingBoxModal!: IonModal;
+  @ViewChild('selectLocationModal') selectLocationModal!: IonModal;
+  @ViewChild('selectRobotModal') selectRobotModal!: IonModal;
 
   private route = inject(ActivatedRoute);
   private router = inject(Router);
@@ -52,11 +54,24 @@ export class InspectStackPage  {
   currentBoxId: number | undefined = undefined;
   onboardBoxName: string = '';
   onboardBoxMac: string = '';
+  selectedLocation: string = '';
+  selectedRobot: string = '';
+  availableLocations: string[] = [];
+  availableRobots: string[] = [];
+  selectedBoxIdForEdit: number | undefined = undefined;
 
   readonly boxOptionsSheetActions = [
     {
       text: 'Rename',
       data: {action: "rename"}
+    },
+    {
+      text: 'Change Location',
+      data: {action: "location"}
+    },
+    {
+      text: 'Change Robot',
+      data: {action: "robot"}
     },
     {
       text: "Delete",
@@ -122,6 +137,10 @@ export class InspectStackPage  {
     const action = event.detail.data.action;
     if (action === "rename") {
       this.openRenameBoxModal(boxId);
+    } else if (action === "location") {
+      this.openSelectLocationModal(boxId);
+    } else if (action === "robot") {
+      this.openSelectRobotModal(boxId);
     } else if (action === "delete") {
       this.openDeleteBoxModal(boxId);
     }
@@ -224,6 +243,60 @@ export class InspectStackPage  {
 
   inspectCompartment(id: number){
     this.router.navigate(['/inspect-compartment', id]);
+  }
+
+  openSelectLocationModal(boxId: number) {
+    this.selectedBoxIdForEdit = boxId;
+    const box = this.stack?.boxes.find(b => b.id === boxId);
+    this.selectedLocation = box?.location || '';
+    this.availableLocations = [];
+    this.selectLocationModal.present();
+    this.backendService.getAvailableLocations().then(locations => {
+      this.availableLocations = locations;
+    });
+  }
+
+  confirmSelectLocation() {
+    if (!this.selectedBoxIdForEdit || !this.selectedLocation.trim()) {
+      return;
+    }
+    this.backendService.updateBoxLocation(this.selectedBoxIdForEdit, this.selectedLocation.trim())
+      .then(updatedBox => {
+        this.selectLocationModal.dismiss();
+        if (updatedBox && this.stack) {
+          const box = this.stack.boxes.find(b => b.id === this.selectedBoxIdForEdit);
+          if (box) {
+            box.location = updatedBox.location;
+          }
+        }
+      });
+  }
+
+  openSelectRobotModal(boxId: number) {
+    this.selectedBoxIdForEdit = boxId;
+    const box = this.stack?.boxes.find(b => b.id === boxId);
+    this.selectedRobot = box?.robot || '';
+    this.availableRobots = [];
+    this.selectRobotModal.present();
+    this.backendService.getAvailableRobots().then(robots => {
+      this.availableRobots = robots;
+    });
+  }
+
+  confirmSelectRobot() {
+    if (!this.selectedBoxIdForEdit || !this.selectedRobot.trim()) {
+      return;
+    }
+    this.backendService.updateBoxRobot(this.selectedBoxIdForEdit, this.selectedRobot.trim())
+      .then(updatedBox => {
+        this.selectRobotModal.dismiss();
+        if (updatedBox && this.stack) {
+          const box = this.stack.boxes.find(b => b.id === this.selectedBoxIdForEdit);
+          if (box) {
+            box.robot = updatedBox.robot;
+          }
+        }
+      });
   }
 
   protected readonly stackStatusString = stackStatusString;

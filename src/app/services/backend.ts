@@ -274,4 +274,50 @@ export class Backend {
         color: "danger"
       }).then(toast => toast.present()));
   }
+
+  public getAvailableLocations(): Promise<string[]> {
+    return lastValueFrom(this.http.get<string[]>(environment.backendURL + "/boxes/locations"))
+      .catch(err => this.toastController.create({
+        message: err.error?.message || err.message,
+        duration: 4000,
+        position: "bottom",
+        color: "danger"
+      }).then(toast => {
+        toast.present();
+        return [];
+      }));
+  }
+
+  public getAvailableRobots(): Promise<string[]> {
+    return lastValueFrom(this.http.get<string[]>(environment.backendURL + "/boxes/robots"))
+      .catch(err => this.toastController.create({
+        message: err.error?.message || err.message,
+        duration: 4000,
+        position: "bottom",
+        color: "danger"
+      }).then(toast => {
+        toast.present();
+        return [];
+      }));
+  }
+
+  public updateBoxLocation(boxId: number, location: string): Promise<MedBox | void> {
+    return lastValueFrom(this.http.put<MedBox>(environment.backendURL + "/boxes/" + boxId + "/location", {location}))
+      .catch(err => this.toastController.create({
+        message: err.error?.message || err.message,
+        duration: 4000,
+        position: "bottom",
+        color: "danger"
+      }).then(toast => toast.present()));
+  }
+
+  public updateBoxRobot(boxId: number, robot: string): Promise<MedBox | void> {
+    return lastValueFrom(this.http.put<MedBox>(environment.backendURL + "/boxes/" + boxId + "/robot", {robot}))
+      .catch(err => this.toastController.create({
+        message: err.error?.message || err.message,
+        duration: 4000,
+        position: "bottom",
+        color: "danger"
+      }).then(toast => toast.present()));
+  }
 }
