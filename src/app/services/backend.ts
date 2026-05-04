@@ -302,7 +302,7 @@ export class Backend {
   }
 
   public updateBoxLocation(boxId: number, location: string): Promise<MedBox | void> {
-    return lastValueFrom(this.http.put<MedBox>(environment.backendURL + "/boxes/" + boxId + "/location", {location}))
+    return lastValueFrom(this.http.patch<MedBox>(environment.backendURL + "/boxes/" + boxId + "/location", {location}))
       .catch(err => this.toastController.create({
         message: err.error?.message || err.message,
         duration: 4000,
@@ -312,7 +312,7 @@ export class Backend {
   }
 
   public updateBoxRobot(boxId: number, robot: string): Promise<MedBox | void> {
-    return lastValueFrom(this.http.put<MedBox>(environment.backendURL + "/boxes/" + boxId + "/robot", {robot}))
+    return lastValueFrom(this.http.patch<MedBox>(environment.backendURL + "/boxes/" + boxId + "/robot", {robot}))
       .catch(err => this.toastController.create({
         message: err.error?.message || err.message,
         duration: 4000,
